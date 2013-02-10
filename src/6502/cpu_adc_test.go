@@ -2,42 +2,63 @@ package cpu
 
 import "testing"
 
-func TestImmediateNoOverflow(t *testing.T) {
+func (p *CPU) addImmediate(first byte, second byte) {
+    p.A = first
+    p.Memory[0x00] = second
+    p.Adc(0x00)
+}
+
+func TestZeroFlagSets(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0x00] = 0x99
-    p.Adc(0x00)
+    p.addImmediate(0x00, 0x00)
+
+    if p.Flags & 0x02 != 0x02 {
+        t.Errorf("Zero flag should be set when result is 0x00 (flags: %08b)", p.Flags)
+        t.FailNow()
+    }
+}
+
+func TestNoOverflow(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.addImmediate(0x00, 0x99)
 
     if p.A != 0x99 {
-        t.Errorf("Accumulator should be 0x99, but was 0x%x")
+        t.Errorf("Accumulator should be 0x99, but was %#02x", p.A)
         t.FailNow()
     }
 }
 
-func TestImmediateOverflow(t *testing.T) {
+func TestOverflow(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.A = 0xff
-    p.Memory[0x00] = 0x01
-
-    p.Adc(0x00)
+    p.addImmediate(0xff, 0x01)
 
     if p.A != 0x00 {
-        t.Errorf("Accumulator should overflow to 0x00, but was 0x%x", p.A)
+        t.Errorf("Accumulator should overflow to 0x00, but was %#02x", p.A)
         t.FailNow()
     }
 }
 
-func TestImmediateOverflowSetsCarryFlag(t *testing.T) {
+func TestNoOverflowUnsetsCarryFlag(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.A = 0xff
-    p.Memory[0x00] = 0x01
+    p.addImmediate(0x00, 0x01)
 
-    p.Adc(0x00)
+    if p.Flags & 0x01 != 0x00 {
+        t.Errorf("Carry flag set when it shouldn't be (flags: %08b)", p.Flags)
+        t.FailNow()
+    }
+}
+
+func TestOverflowSetsCarryFlag(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.addImmediate(0xff, 0x01)
 
     if p.Flags & 0x01 != 0x01 {
-        t.Errorf("Carry flag not set")
+        t.Errorf("Carry flag not set when it should be (flags: %08b)", p.Flags)
         t.FailNow()
     }
 }

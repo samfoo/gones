@@ -8,14 +8,33 @@ type CPU struct {
     Memory [0x10000]byte
 }
 
+func (p *CPU) setFlag(mask byte, value bool) {
+    if value {
+        p.Flags |= mask
+    } else {
+        p.Flags &= ^mask
+    }
+}
+
+func (p *CPU) setCarryFlag(value bool) {
+    p.setFlag(0x01, value)
+}
+
+func (p *CPU) setZeroFlag(value bool) {
+    p.setFlag(0x02, value)
+}
+
 func (p *CPU) Adc(location Address) {
-    val := p.Memory[location]
+    other := p.Memory[location]
     old := p.A
 
-    p.A += val
+    p.A += other
 
     if p.A < old {
-        // There was a carry in unsigned arithmetic
-        p.Flags |= 0x01
+        p.setCarryFlag(true)
+    }
+
+    if p.A == 0x00 {
+        p.setZeroFlag(true)
     }
 }
