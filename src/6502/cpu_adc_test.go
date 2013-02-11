@@ -62,3 +62,39 @@ func TestOverflowSetsCarryFlag(t *testing.T) {
         t.FailNow()
     }
 }
+
+func TestSignedPositiveOverflowSetsOverflowFlag(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    // First and second numbers' sign bit is 0 and the result's sign bit is 1
+    // is positive overflow
+    p.addImmediate(0x7f, 0x7f)
+
+    if p.A & 0x80 != 0x80 {
+        t.Errorf("Overflow arithmetic didn't work properly")
+        t.FailNow()
+    }
+
+    if p.Flags & 0x40 != 0x40 {
+        t.Errorf("Overflow flag not set when it should be (flags: %08b)", p.Flags)
+        t.FailNow()
+    }
+}
+
+func TestSignedNegativeOverflowSetsOverflowFlag(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    // First and second numbers' sign bit is 1 and the result's sign bit is 0
+    // is negative overflow
+    p.addImmediate(0x80, 0x80)
+
+    if p.A & 0x80 != 0x00 {
+        t.Errorf("Overflow arithmetic didn't work properly %#02x", p.A)
+        t.FailNow()
+    }
+
+    if p.Flags & 0x40 != 0x40 {
+        t.Errorf("Overflow flag not set when it should be (flags: %08b)", p.Flags)
+        t.FailNow()
+    }
+}
