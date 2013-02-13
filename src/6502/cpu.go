@@ -113,3 +113,19 @@ func (p *CPU) Asl(memory *byte) {
         p.setZeroFlag(true)
     }
 }
+
+func (p *CPU) Bit(location Address) {
+    result := p.A & p.Memory[location]
+
+    if result & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+
+    if result & 0x40 == 0x40 {
+        p.setOverflowFlag(true)
+    }
+
+    if result == 0x00 {
+        p.setZeroFlag(true)
+    }
+}

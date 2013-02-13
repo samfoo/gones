@@ -4,8 +4,8 @@ import "testing"
 
 func (p *CPU) addImmediate(first byte, second byte) {
     p.A = first
-    p.Memory[0x00] = second
-    p.Adc(0x00)
+    p.Memory[0] = second
+    p.Adc(0)
 }
 
 func TestZeroFlagSet(t *testing.T) {

@@ -8,8 +8,8 @@ func (p *CPU) aslAccumulator(a byte) {
 }
 
 func (p *CPU) aslMemory(a byte) {
-    p.Memory[0x00] = a
-    p.Asl(&p.Memory[0x00])
+    p.Memory[0] = a
+    p.Asl(&p.Memory[0])
 }
 
 func TestAslShiftsAccumulator(t *testing.T) {

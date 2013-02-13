@@ -4,8 +4,8 @@ import "testing"
 
 func (p *CPU) andImmediate(first byte, second byte) {
     p.A = first
-    p.Memory[0x00] = second
-    p.And(0x00)
+    p.Memory[0] = second
+    p.And(0)
 }
 
 func TestAndSetsAccumulator(t *testing.T) {
