@@ -8,13 +8,24 @@ func (p *CPU) addImmediate(first byte, second byte) {
     p.Adc(0x00)
 }
 
-func TestZeroFlagSets(t *testing.T) {
+func TestZeroFlagSet(t *testing.T) {
     var p *CPU = new(CPU)
 
     p.addImmediate(0x00, 0x00)
 
-    if p.Flags & 0x02 != 0x02 {
+    if !p.Zero() {
         t.Errorf("Zero flag should be set when result is 0x00 (flags: %08b)", p.Flags)
+        t.FailNow()
+    }
+}
+
+func TestAdcSetsNegativeFlagWhenHighBitIs1(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.addImmediate(0x00, 0x80)
+
+    if !p.Negative() {
+        t.Errorf("Negative flag should be set when result is negative (flags: %08b)", p.Flags)
         t.FailNow()
     }
 }
@@ -46,7 +57,7 @@ func TestNoOverflowUnsetsCarryFlag(t *testing.T) {
 
     p.addImmediate(0x00, 0x01)
 
-    if p.Flags & 0x01 != 0x00 {
+    if p.Carry() {
         t.Errorf("Carry flag set when it shouldn't be (flags: %08b)", p.Flags)
         t.FailNow()
     }
@@ -57,7 +68,7 @@ func TestOverflowSetsCarryFlag(t *testing.T) {
 
     p.addImmediate(0xff, 0x01)
 
-    if p.Flags & 0x01 != 0x01 {
+    if !p.Carry() {
         t.Errorf("Carry flag not set when it should be (flags: %08b)", p.Flags)
         t.FailNow()
     }
@@ -75,7 +86,7 @@ func TestSignedPositiveOverflowSetsOverflowFlag(t *testing.T) {
         t.FailNow()
     }
 
-    if p.Flags & 0x40 != 0x40 {
+    if !p.Overflow() {
         t.Errorf("Overflow flag not set when it should be (flags: %08b)", p.Flags)
         t.FailNow()
     }
@@ -93,7 +104,7 @@ func TestSignedNegativeOverflowSetsOverflowFlag(t *testing.T) {
         t.FailNow()
     }
 
-    if p.Flags & 0x40 != 0x40 {
+    if !p.Overflow() {
         t.Errorf("Overflow flag not set when it should be (flags: %08b)", p.Flags)
         t.FailNow()
     }

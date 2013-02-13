@@ -28,6 +28,10 @@ func (p *CPU) setOverflowFlag(value bool) {
     p.setFlag(0x40, value)
 }
 
+func (p *CPU) setNegativeFlag(value bool) {
+    p.setFlag(0x80, value)
+}
+
 func addOverflowed(first byte, second byte, result byte) bool {
     if (first & 0x80 == 0x00) &&
         (second & 0x80 == 0x00) &&
@@ -40,6 +44,22 @@ func addOverflowed(first byte, second byte, result byte) bool {
     }
 
     return false
+}
+
+func (p *CPU) Zero() bool {
+    return p.Flags & 0x02 == 0x02
+}
+
+func (p *CPU) Carry() bool {
+    return p.Flags & 0x01 == 0x01
+}
+
+func (p *CPU) Overflow() bool {
+    return p.Flags & 0x40 == 0x40
+}
+
+func (p *CPU) Negative() bool {
+    return p.Flags & 0x80 == 0x80
 }
 
 func (p *CPU) Adc(location Address) {
@@ -58,5 +78,22 @@ func (p *CPU) Adc(location Address) {
 
     if addOverflowed(old, other, p.A) {
         p.setOverflowFlag(true)
+    }
+
+    if p.A & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+}
+
+func (p *CPU) And(location Address) {
+    other := p.Memory[location]
+    p.A &= other
+
+    if p.A == 0x00 {
+        p.setZeroFlag(true)
+    }
+
+    if p.A & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
     }
 }
