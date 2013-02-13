@@ -32,6 +32,16 @@ func (p *CPU) setNegativeFlag(value bool) {
     p.setFlag(0x80, value)
 }
 
+func (p *CPU) setNegativeAndZeroFlags(value byte) {
+    if value & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+
+    if value == 0x00 {
+        p.setZeroFlag(true)
+    }
+}
+
 func (p *CPU) setInterruptDisable(value bool) {
     p.setFlag(0x04, value)
 }
@@ -80,30 +90,18 @@ func (p *CPU) Adc(location Address) {
         p.setCarryFlag(true)
     }
 
-    if p.A == 0x00 {
-        p.setZeroFlag(true)
-    }
-
     if addOverflowed(old, other, p.A) {
         p.setOverflowFlag(true)
     }
 
-    if p.A & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
+    p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) And(location Address) {
     other := p.Memory[location]
     p.A &= other
 
-    if p.A == 0x00 {
-        p.setZeroFlag(true)
-    }
-
-    if p.A & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
+    p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) Asl(memory *byte) {
@@ -113,29 +111,17 @@ func (p *CPU) Asl(memory *byte) {
 
     *memory = *memory << 1
 
-    if *memory & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
-
-    if *memory == 0x00 {
-        p.setZeroFlag(true)
-    }
+    p.setNegativeAndZeroFlags(*memory)
 }
 
 func (p *CPU) Bit(location Address) {
     result := p.A & p.Memory[location]
 
-    if result & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
-
     if result & 0x40 == 0x40 {
         p.setOverflowFlag(true)
     }
 
-    if result == 0x00 {
-        p.setZeroFlag(true)
-    }
+    p.setNegativeAndZeroFlags(result)
 }
 
 func (p *CPU) Clc() {
@@ -153,17 +139,11 @@ func (p *CPU) Clv() {
 func (p *CPU) compare(register byte, value byte) {
     result := register - value
 
-    if result == 0x00 {
-        p.setZeroFlag(true)
-    }
-
     if register >= value {
         p.setCarryFlag(true)
     }
 
-    if result & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
+    p.setNegativeAndZeroFlags(result)
 }
 
 func (p *CPU) Cmp(location Address) {
@@ -181,13 +161,7 @@ func (p *CPU) Cpy(location Address) {
 func (p *CPU) decrement(memory *byte) {
     *memory -= 1
 
-    if *memory & 0x80 == 0x80 {
-        p.setNegativeFlag(true)
-    }
-
-    if *memory == 0x00 {
-        p.setZeroFlag(true)
-    }
+    p.setNegativeAndZeroFlags(*memory)
 }
 
 func (p *CPU) Dec(location Address) {
