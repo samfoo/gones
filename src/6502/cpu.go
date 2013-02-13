@@ -149,3 +149,31 @@ func (p *CPU) Cli() {
 func (p *CPU) Clv() {
     p.setOverflowFlag(false)
 }
+
+func (p *CPU) compare(register byte, value byte) {
+    result := register - value
+
+    if result == 0x00 {
+        p.setZeroFlag(true)
+    }
+
+    if register >= value {
+        p.setCarryFlag(true)
+    }
+
+    if result & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+}
+
+func (p *CPU) Cmp(location Address) {
+    p.compare(p.A, p.Memory[location])
+}
+
+func (p *CPU) Cpx(location Address) {
+    p.compare(p.X, p.Memory[location])
+}
+
+func (p *CPU) Cpy(location Address) {
+    p.compare(p.Y, p.Memory[location])
+}
