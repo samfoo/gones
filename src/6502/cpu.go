@@ -175,3 +175,21 @@ func (p *CPU) Dex() {
 func (p *CPU) Dey() {
     p.decrement(&p.Y)
 }
+
+func (p *CPU) increment(memory *byte) {
+    *memory += 1
+
+    p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Inc(location Address) {
+    p.increment(&p.Memory[location])
+}
+
+func (p *CPU) Inx() {
+    p.increment(&p.X)
+}
+
+func (p *CPU) Iny() {
+    p.increment(&p.Y)
+}

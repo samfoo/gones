@@ -44,7 +44,7 @@ func TestDecrementMutatesItem(t *testing.T) {
     p = dey(0x02)
     if p.Y != 0x01 {
         t.Errorf("Decrement register Y failed")
-        t.Errorf("Expected 0x01, got %#02x", p.X)
+        t.Errorf("Expected 0x01, got %#02x", p.Y)
     }
 }
 
