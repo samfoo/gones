@@ -177,3 +177,27 @@ func (p *CPU) Cpx(location Address) {
 func (p *CPU) Cpy(location Address) {
     p.compare(p.Y, p.Memory[location])
 }
+
+func (p *CPU) decrement(memory *byte) {
+    *memory -= 1
+
+    if *memory & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+
+    if *memory == 0x00 {
+        p.setZeroFlag(true)
+    }
+}
+
+func (p *CPU) Dec(location Address) {
+    p.decrement(&p.Memory[location])
+}
+
+func (p *CPU) Dex() {
+    p.decrement(&p.X)
+}
+
+func (p *CPU) Dey() {
+    p.decrement(&p.Y)
+}
