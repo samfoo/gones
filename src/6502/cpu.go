@@ -32,6 +32,10 @@ func (p *CPU) setNegativeFlag(value bool) {
     p.setFlag(0x80, value)
 }
 
+func (p *CPU) setInterruptDisable(value bool) {
+    p.setFlag(0x04, value)
+}
+
 func addOverflowed(first byte, second byte, result byte) bool {
     if (first & 0x80 == 0x00) &&
         (second & 0x80 == 0x00) &&
@@ -60,6 +64,10 @@ func (p *CPU) Overflow() bool {
 
 func (p *CPU) Negative() bool {
     return p.Flags & 0x80 == 0x80
+}
+
+func (p *CPU) InterruptDisable() bool {
+    return p.Flags & 0x04 == 0x04
 }
 
 func (p *CPU) Adc(location Address) {
@@ -128,4 +136,16 @@ func (p *CPU) Bit(location Address) {
     if result == 0x00 {
         p.setZeroFlag(true)
     }
+}
+
+func (p *CPU) Clc() {
+    p.setCarryFlag(false)
+}
+
+func (p *CPU) Cli() {
+    p.setInterruptDisable(false)
+}
+
+func (p *CPU) Clv() {
+    p.setOverflowFlag(false)
 }
