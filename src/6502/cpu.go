@@ -97,3 +97,19 @@ func (p *CPU) And(location Address) {
         p.setNegativeFlag(true)
     }
 }
+
+func (p *CPU) Asl(memory *byte) {
+    if *memory & 0x80 == 0x80 {
+        p.setCarryFlag(true)
+    }
+
+    *memory = *memory << 1
+
+    if *memory & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
+
+    if *memory == 0x00 {
+        p.setZeroFlag(true)
+    }
+}
