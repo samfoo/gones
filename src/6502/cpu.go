@@ -24,6 +24,14 @@ func (p *CPU) setZeroFlag(value bool) {
     p.setFlag(0x02, value)
 }
 
+func (p *CPU) setInterruptDisable(value bool) {
+    p.setFlag(0x04, value)
+}
+
+func (p *CPU) setDecimalFlag(value bool) {
+    p.setFlag(0x08, value)
+}
+
 func (p *CPU) setOverflowFlag(value bool) {
     p.setFlag(0x40, value)
 }
@@ -40,10 +48,6 @@ func (p *CPU) setNegativeAndZeroFlags(value byte) {
     if value == 0x00 {
         p.setZeroFlag(true)
     }
-}
-
-func (p *CPU) setInterruptDisable(value bool) {
-    p.setFlag(0x04, value)
 }
 
 func addOverflowed(first byte, second byte, result byte) bool {
@@ -80,12 +84,20 @@ func subtractOverflowed(first byte, second byte, result byte) bool {
     return false
 }
 
+func (p *CPU) Carry() bool {
+    return p.Flags & 0x01 == 0x01
+}
+
 func (p *CPU) Zero() bool {
     return p.Flags & 0x02 == 0x02
 }
 
-func (p *CPU) Carry() bool {
-    return p.Flags & 0x01 == 0x01
+func (p *CPU) InterruptDisable() bool {
+    return p.Flags & 0x04 == 0x04
+}
+
+func (p *CPU) Decimal() bool {
+    return p.Flags & 0x08 == 0x08
 }
 
 func (p *CPU) Overflow() bool {
@@ -94,10 +106,6 @@ func (p *CPU) Overflow() bool {
 
 func (p *CPU) Negative() bool {
     return p.Flags & 0x80 == 0x80
-}
-
-func (p *CPU) InterruptDisable() bool {
-    return p.Flags & 0x04 == 0x04
 }
 
 func (p *CPU) Adc(location Address) {
@@ -335,4 +343,16 @@ func (p *CPU) Ror(memory *byte) {
     }
 
     p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Sec() {
+    p.setCarryFlag(true)
+}
+
+func (p *CPU) Sed() {
+    p.setDecimalFlag(true)
+}
+
+func (p *CPU) Sei() {
+    p.setInterruptDisable(true)
 }
