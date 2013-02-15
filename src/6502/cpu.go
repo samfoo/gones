@@ -356,3 +356,15 @@ func (p *CPU) Sed() {
 func (p *CPU) Sei() {
     p.setInterruptDisable(true)
 }
+
+func (p *CPU) Sta(location Address) {
+    p.Memory[location] = p.A
+}
+
+func (p *CPU) Stx(location Address) {
+    p.Memory[location] = p.X
+}
+
+func (p *CPU) Sty(location Address) {
+    p.Memory[location] = p.Y
+}
