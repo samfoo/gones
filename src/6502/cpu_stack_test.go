@@ -22,6 +22,15 @@ func php(value byte) (*CPU) {
     return p
 }
 
+func TestPhpAlwaysSetsBreakFlag(t *testing.T) {
+    var p = php(0x00)
+    p.Plp()
+
+    if p.Flags & 0x10 != 0x10 {
+        t.Errorf("Php didn't set the break flag when it should have")
+    }
+}
+
 func TestPushingValues(t *testing.T) {
     validate := func(p *CPU) {
         if p.SP != 0xfe {

@@ -308,7 +308,7 @@ func (p *CPU) Pha() {
 }
 
 func (p *CPU) Php() {
-    p.push(p.Flags)
+    p.push(p.Flags | 0x10)
 }
 
 func (p *CPU) Pla() {
@@ -465,4 +465,17 @@ func (p *CPU) Bvs(location Address) {
     } else {
         p.PC += 1
     }
+}
+
+func (p *CPU) Brk() {
+    p.PC += 1
+
+    p.push(byte(p.PC >> 8))
+    p.push(byte(p.PC & 0x00ff))
+
+    p.push(p.Flags | 0x10)
+    p.setInterruptDisable(true)
+
+    p.PC = Address(p.Memory[0xffff]) << 8
+    p.PC |= Address(p.Memory[0xfffe])
 }
