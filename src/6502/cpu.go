@@ -50,10 +50,30 @@ func addOverflowed(first byte, second byte, result byte) bool {
     if (first & 0x80 == 0x00) &&
         (second & 0x80 == 0x00) &&
         (result & 0x80 == 0x80) {
+        // Adding two positives should not result in a negative
         return true
     } else if (first & 0x80 == 0x80) &&
         (second & 0x80 == 0x80) &&
         (result & 0x80 == 0x00) {
+        // Adding two negatives should not result in a positive
+        return true
+    }
+
+    return false
+}
+
+func subtractOverflowed(first byte, second byte, result byte) bool {
+    if (first & 0x80 == 0x00) &&
+        (second & 0x80 == 0x80) &&
+        (result & 0x80 == 0x80) {
+        // Subtracting a negative from a positive shouldn't result in a
+        // negative
+        return true
+    } else if (first & 0x80 == 0x80) &&
+        (second & 0x80 == 0x00) &&
+        (result & 0x80 == 0x00) {
+        // Subtracting a positive from a negative shoudn't result in a
+        // positive
         return true
     }
 
@@ -86,11 +106,36 @@ func (p *CPU) Adc(location Address) {
 
     p.A += other
 
+    if p.Carry() {
+        p.A += 0x01
+    }
+
     if p.A < old {
         p.setCarryFlag(true)
     }
 
     if addOverflowed(old, other, p.A) {
+        p.setOverflowFlag(true)
+    }
+
+    p.setNegativeAndZeroFlags(p.A)
+}
+
+func (p *CPU) Sbc(location Address) {
+    other := p.Memory[location]
+    old := p.A
+
+    p.A -= other
+
+    if p.Carry() {
+        p.A -= 0x01
+    }
+
+    if p.A > old {
+        p.setCarryFlag(true)
+    }
+
+    if subtractOverflowed(old, other, p.A) {
         p.setOverflowFlag(true)
     }
 
