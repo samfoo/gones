@@ -104,6 +104,13 @@ func (p *CPU) And(location Address) {
     p.setNegativeAndZeroFlags(p.A)
 }
 
+func (p *CPU) Ora(location Address) {
+    other := p.Memory[location]
+    p.A |= other
+
+    p.setNegativeAndZeroFlags(p.A)
+}
+
 func (p *CPU) Asl(memory *byte) {
     if *memory & 0x80 == 0x80 {
         p.setCarryFlag(true)
