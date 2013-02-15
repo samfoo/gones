@@ -237,3 +237,31 @@ func (p *CPU) Lsr(memory *byte) {
 
 func (p *CPU) Nop() {
 }
+
+func (p *CPU) push(value byte) {
+    p.Memory[0x0100 + Address(p.SP)] = value
+
+    p.SP -= 1
+}
+
+func (p *CPU) pull(memory *byte) {
+    p.SP += 1
+
+    *memory = p.Memory[0x0100 + Address(p.SP)]
+}
+
+func (p *CPU) Pha() {
+    p.push(p.A)
+}
+
+func (p *CPU) Php() {
+    p.push(p.Flags)
+}
+
+func (p *CPU) Pla() {
+    p.pull(&p.A)
+}
+
+func (p *CPU) Plp() {
+    p.pull(&p.Flags)
+}
