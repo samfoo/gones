@@ -260,8 +260,34 @@ func (p *CPU) Php() {
 
 func (p *CPU) Pla() {
     p.pull(&p.A)
+
+    p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) Plp() {
     p.pull(&p.Flags)
+}
+
+func (p *CPU) Rol(memory *byte) {
+    p.setCarryFlag((*memory & 0x80) == 0x80)
+
+    *memory = *memory << 1
+
+    if p.Carry() {
+        *memory |= 0x01
+    }
+
+    p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Ror(memory *byte) {
+    p.setCarryFlag((*memory & 0x01) == 0x01)
+
+    *memory = *memory >> 1
+
+    if p.Carry() {
+        *memory |= 0x80
+    }
+
+    p.setNegativeAndZeroFlags(*memory)
 }
