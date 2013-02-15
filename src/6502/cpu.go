@@ -368,3 +368,37 @@ func (p *CPU) Stx(location Address) {
 func (p *CPU) Sty(location Address) {
     p.Memory[location] = p.Y
 }
+
+func (p *CPU) Tax() {
+    p.X = p.A
+
+    p.setNegativeAndZeroFlags(p.X)
+}
+
+func (p *CPU) Tay() {
+    p.Y = p.A
+
+    p.setNegativeAndZeroFlags(p.Y)
+}
+
+func (p *CPU) Tsx() {
+    p.X = p.SP
+
+    p.setNegativeAndZeroFlags(p.X)
+}
+
+func (p *CPU) Txa() {
+    p.A = p.X
+
+    p.setNegativeAndZeroFlags(p.A)
+}
+
+func (p *CPU) Txs() {
+    p.SP = p.X
+}
+
+func (p *CPU) Tya() {
+    p.A = p.Y
+
+    p.setNegativeAndZeroFlags(p.A)
+}
