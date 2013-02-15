@@ -488,3 +488,23 @@ func (p *CPU) Jsr(location Address) {
 
     p.PC = location
 }
+
+func (p *CPU) Rti() {
+    p.pull(&p.Flags)
+
+    var low byte = 0x00
+    p.pull(&low)
+    var high byte = 0x00
+    p.pull(&high)
+
+    p.PC = (Address(high) << 8) + Address(low)
+}
+
+func (p *CPU) Rts() {
+    var low byte = 0x00
+    p.pull(&low)
+    var high byte = 0x00
+    p.pull(&high)
+
+    p.PC = (Address(high) << 8) + Address(low) + 1
+}
