@@ -2,9 +2,6 @@ package cpu
 
 import "testing"
 
-func validateNegative(p *CPU, t *testing.T) {
-}
-
 func dec(value byte) (*CPU) {
     var p *CPU = new(CPU)
 

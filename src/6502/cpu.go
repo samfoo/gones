@@ -199,3 +199,21 @@ func (p *CPU) Inx() {
 func (p *CPU) Iny() {
     p.increment(&p.Y)
 }
+
+func (p *CPU) load(memory *byte, value byte) {
+    *memory = value
+
+    p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Lda(location Address) {
+    p.load(&p.A, p.Memory[location])
+}
+
+func (p *CPU) Ldx(location Address) {
+    p.load(&p.X, p.Memory[location])
+}
+
+func (p *CPU) Ldy(location Address) {
+    p.load(&p.Y, p.Memory[location])
+}
