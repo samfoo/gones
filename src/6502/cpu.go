@@ -402,3 +402,67 @@ func (p *CPU) Tya() {
 
     p.setNegativeAndZeroFlags(p.A)
 }
+
+func (p *CPU) Bcc(location Address) {
+    if p.Carry() {
+        p.PC += 1
+    } else {
+        p.PC = location
+    }
+}
+
+func (p *CPU) Bcs(location Address) {
+    if p.Carry() {
+        p.PC = location
+    } else {
+        p.PC += 1
+    }
+}
+
+func (p *CPU) Beq(location Address) {
+    if p.Zero() {
+        p.PC = location
+    } else {
+        p.PC += 1
+    }
+}
+
+func (p *CPU) Bmi(location Address) {
+    if p.Negative() {
+        p.PC = location
+    } else {
+        p.PC += 1
+    }
+}
+
+func (p *CPU) Bne(location Address) {
+    if p.Zero() {
+        p.PC += 1
+    } else {
+        p.PC = location
+    }
+}
+
+func (p *CPU) Bpl(location Address) {
+    if p.Negative() {
+        p.PC += 1
+    } else {
+        p.PC = location
+    }
+}
+
+func (p *CPU) Bvc(location Address) {
+    if p.Overflow() {
+        p.PC += 1
+    } else {
+        p.PC = location
+    }
+}
+
+func (p *CPU) Bvs(location Address) {
+    if p.Overflow() {
+        p.PC = location
+    } else {
+        p.PC += 1
+    }
+}
