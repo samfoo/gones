@@ -217,3 +217,13 @@ func (p *CPU) Ldx(location Address) {
 func (p *CPU) Ldy(location Address) {
     p.load(&p.Y, p.Memory[location])
 }
+
+func (p *CPU) Lsr(memory *byte) {
+    if *memory & 0x01 == 0x01 {
+        p.setCarryFlag(true)
+    }
+
+    *memory = *memory >> 1
+
+    p.setNegativeAndZeroFlags(*memory)
+}

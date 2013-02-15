@@ -58,7 +58,7 @@ func TestAslNegativeFlagSet(t *testing.T) {
     }
 }
 
-func TestAslCarryFlatSet(t *testing.T) {
+func TestAslCarryFlagSet(t *testing.T) {
     var p *CPU = new(CPU)
 
     p.aslAccumulator(0x80)
