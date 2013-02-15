@@ -176,6 +176,12 @@ func (p *CPU) Dey() {
     p.decrement(&p.Y)
 }
 
+func (p *CPU) Eor(location Address) {
+    p.A ^= p.Memory[location]
+
+    p.setNegativeAndZeroFlags(p.A)
+}
+
 func (p *CPU) increment(memory *byte) {
     *memory += 1
 
