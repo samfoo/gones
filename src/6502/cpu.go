@@ -227,3 +227,6 @@ func (p *CPU) Lsr(memory *byte) {
 
     p.setNegativeAndZeroFlags(*memory)
 }
+
+func (p *CPU) Nop() {
+}
