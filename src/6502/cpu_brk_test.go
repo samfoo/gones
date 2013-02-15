@@ -19,7 +19,7 @@ func TestBrkStack(t *testing.T) {
 
     if stack[1] != 0xef + 1 {
         t.Errorf("PC low byte not pushed properly to the stack")
-        t.Errorf("Expected %#02x, got %#02x", 0xef, stack[1])
+        t.Errorf("Expected %#02x, got %#02x", 0xef + 1, stack[1])
     }
 
     if stack[2] != 0xbe {

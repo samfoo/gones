@@ -468,14 +468,23 @@ func (p *CPU) Bvs(location Address) {
 }
 
 func (p *CPU) Brk() {
-    p.PC += 1
-
-    p.push(byte(p.PC >> 8))
-    p.push(byte(p.PC & 0x00ff))
+    p.push(byte((p.PC+1) >> 8))
+    p.push(byte((p.PC+1) & 0x00ff))
 
     p.push(p.Flags | 0x10)
     p.setInterruptDisable(true)
 
     p.PC = Address(p.Memory[0xffff]) << 8
     p.PC |= Address(p.Memory[0xfffe])
+}
+
+func (p *CPU) Jmp(location Address) {
+    p.PC = location
+}
+
+func (p *CPU) Jsr(location Address) {
+    p.push(byte((p.PC-1) >> 8))
+    p.push(byte((p.PC-1) & 0x00ff))
+
+    p.PC = location
 }
