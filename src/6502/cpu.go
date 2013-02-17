@@ -8,53 +8,111 @@ type CPU struct {
     Memory [0x10000]byte
 }
 
+type Opcode byte
+type Operation func(*CPU)
+
+var opcodes = map[Opcode]Operation {
+    0x69: func(p *CPU) {
+        location := p.Address((*CPU).Immediate)
+        p.Adc(location)
+    },
+    0x65: func(p *CPU) {
+        location := p.Address((*CPU).ZeroPage)
+        p.Adc(location)
+    },
+    0x75: func(p *CPU) {
+        location := p.Address((*CPU).ZeroPageX)
+        p.Adc(location)
+    },
+    0x6d: func(p *CPU) {
+        location := p.Address((*CPU).Absolute)
+        p.Adc(location)
+    },
+    0x7d: func(p *CPU) {
+        location := p.Address((*CPU).AbsoluteX)
+        p.Adc(location)
+    },
+    0x79: func(p *CPU) {
+        location := p.Address((*CPU).AbsoluteY)
+        p.Adc(location)
+    },
+    0x61: func(p *CPU) {
+        location := p.Address((*CPU).IndexedIndirect)
+        p.Adc(location)
+    },
+    0x71: func(p *CPU) {
+        location := p.Address((*CPU).IndirectIndexed)
+        p.Adc(location)
+    },
+}
+
+func (p *CPU) Op(opcode Opcode) func() {
+    return func() {
+        opcodes[opcode](p)
+    }
+}
+
 func (p *CPU) Reset() {
     p.Flags = 0x34
     p.A, p.X, p.Y = 0x00, 0x00, 0x00
     p.SP = 0xfd
 }
 
-func (p *CPU) Immediate() Address {
-    return p.PC
+type AddressMode func(*CPU) (Address, int)
+
+func (p *CPU) Address(mode AddressMode) Address {
+    var location, i = mode(p)
+
+    p.PC += Address(i)
+
+    return location
 }
 
-func (p *CPU) ZeroPage() Address {
-    return Address(p.Memory[p.PC])
+func (p *CPU) Immediate() (Address, int) {
+    return p.PC, 1
 }
 
-func (p *CPU) ZeroPageX() Address {
-    return Address(p.Memory[p.PC] + p.X)
+func (p *CPU) ZeroPage() (Address, int) {
+    return Address(p.Memory[p.PC]), 1
 }
 
-func (p *CPU) Absolute() Address {
+func (p *CPU) ZeroPageX() (Address, int) {
+    return Address(p.Memory[p.PC] + p.X), 1
+}
+
+func (p *CPU) absolute() Address {
     high := p.Memory[p.PC+1]
     low := p.Memory[p.PC]
 
     return (Address(high) << 8) + Address(low)
 }
 
-func (p *CPU) AbsoluteX() Address {
-    return p.Absolute() + Address(p.X)
+func (p *CPU) Absolute() (Address, int) {
+    return p.absolute(), 2
 }
 
-func (p *CPU) AbsoluteY() Address {
-    return p.Absolute() + Address(p.Y)
+func (p *CPU) AbsoluteX() (Address, int) {
+    return p.absolute() + Address(p.X), 2
 }
 
-func (p *CPU) IndexedIndirect() Address {
+func (p *CPU) AbsoluteY() (Address, int) {
+    return p.absolute() + Address(p.Y), 2
+}
+
+func (p *CPU) IndexedIndirect() (Address, int) {
     pointer := p.Memory[p.PC] + p.X
 
     high := p.Memory[pointer+1]
     low := p.Memory[pointer]
 
-    return (Address(high) << 8) + Address(low)
+    return (Address(high) << 8) + Address(low), 1
 }
 
-func (p *CPU) IndirectIndexed() Address {
+func (p *CPU) IndirectIndexed() (Address, int) {
     high := p.Memory[p.PC+1]
     low := p.Memory[p.PC]
 
-    return (Address(high) << 8) + Address(low) + Address(p.Y)
+    return (Address(high) << 8) + Address(low) + Address(p.Y), 1
 }
 
 func (p *CPU) setFlag(mask byte, value bool) {
