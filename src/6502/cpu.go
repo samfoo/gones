@@ -8,6 +8,55 @@ type CPU struct {
     Memory [0x10000]byte
 }
 
+func (p *CPU) Reset() {
+    p.Flags = 0x34
+    p.A, p.X, p.Y = 0x00, 0x00, 0x00
+    p.SP = 0xfd
+}
+
+func (p *CPU) Immediate() Address {
+    return p.PC
+}
+
+func (p *CPU) ZeroPage() Address {
+    return Address(p.Memory[p.PC])
+}
+
+func (p *CPU) ZeroPageX() Address {
+    return Address(p.Memory[p.PC] + p.X)
+}
+
+func (p *CPU) Absolute() Address {
+    high := p.Memory[p.PC+1]
+    low := p.Memory[p.PC]
+
+    return (Address(high) << 8) + Address(low)
+}
+
+func (p *CPU) AbsoluteX() Address {
+    return p.Absolute() + Address(p.X)
+}
+
+func (p *CPU) AbsoluteY() Address {
+    return p.Absolute() + Address(p.Y)
+}
+
+func (p *CPU) IndexedIndirect() Address {
+    pointer := p.Memory[p.PC] + p.X
+
+    high := p.Memory[pointer+1]
+    low := p.Memory[pointer]
+
+    return (Address(high) << 8) + Address(low)
+}
+
+func (p *CPU) IndirectIndexed() Address {
+    high := p.Memory[p.PC+1]
+    low := p.Memory[p.PC]
+
+    return (Address(high) << 8) + Address(low) + Address(p.Y)
+}
+
 func (p *CPU) setFlag(mask byte, value bool) {
     if value {
         p.Flags |= mask
