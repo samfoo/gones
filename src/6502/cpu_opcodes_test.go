@@ -12,6 +12,46 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func TestBneOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x02
+    p.execute(0xd0, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bne with zero set branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0xd0, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bne withput zero set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+}
+
+func TestBeqOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x02
+    p.execute(0xf0, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Beq with zero set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0xf0, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Beq withput zero branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+}
+
 func TestBcsOpcode(t *testing.T) {
     var p = new(CPU)
     p.Reset()
