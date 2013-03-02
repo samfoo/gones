@@ -48,6 +48,46 @@ func TestBitOpcodes(t *testing.T) {
     }
 }
 
+func TestBvsOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x40
+    p.execute(0x70, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bvs with overflow set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x70, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bvs without overflow branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+}
+
+func TestBvcOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x40
+    p.execute(0x50, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bvc with overflow set branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x50, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bvc without overflow set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+}
+
 func TestBmiOpcode(t *testing.T) {
     var p = new(CPU)
     p.Reset()
