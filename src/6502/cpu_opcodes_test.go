@@ -12,6 +12,18 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func TestBrkOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Memory[0xfffe] = 0xff
+    p.Memory[0xffff] = 0xee
+    p.execute(0x00, []byte{})
+    if p.PC != 0xeeff {
+        t.Errorf("Brk didn't load the interrupt vector into PC")
+        t.Errorf("Expected %#04x, got %#04x", 0xeeff, p.PC)
+    }
+}
+
 func TestBitOpcodes(t *testing.T) {
     var p = new(CPU)
     p.Reset()

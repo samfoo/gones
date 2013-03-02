@@ -103,6 +103,9 @@ var opcodes = map[Opcode]Operation {
     0x10: func(p *CPU) {
         p.Bpl(p.Address((*CPU).Relative))
     },
+    0x00: func(p *CPU) {
+        p.Brk()
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
