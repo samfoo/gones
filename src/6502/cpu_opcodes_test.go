@@ -12,6 +12,30 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func TestBitOpcodes(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.A = 0x00
+    p.execute(0x24, []byte{0x01, 0xff})
+    if !p.Zero() {
+        t.Errorf("Zero flag not set right")
+    }
+    if !p.Overflow() || !p.Negative() {
+        t.Errorf("Either the overflow or negative flag wasn't set right")
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.A = 0x00
+    p.execute(0x2c, []byte{0x02, 0x00, 0xff})
+    if !p.Zero() {
+        t.Errorf("Zero flag not set right")
+    }
+    if !p.Overflow() || !p.Negative() {
+        t.Errorf("Either the overflow or negative flag wasn't set right")
+    }
+}
+
 func TestBneOpcode(t *testing.T) {
     var p = new(CPU)
     p.Reset()

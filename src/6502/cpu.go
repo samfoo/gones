@@ -91,6 +91,12 @@ var opcodes = map[Opcode]Operation {
     0xd0: func(p *CPU) {
         p.Bne(p.Address((*CPU).Relative))
     },
+    0x24: func(p *CPU) {
+        p.Bit(p.Address((*CPU).ZeroPage))
+    },
+    0x2c: func(p *CPU) {
+        p.Bit(p.Address((*CPU).Absolute))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
@@ -342,11 +348,17 @@ func (p *CPU) Asl(memory *byte) {
 func (p *CPU) Bit(location Address) {
     result := p.A & p.Memory[location]
 
-    if result & 0x40 == 0x40 {
+    if result == 0x00 {
+        p.setZeroFlag(true)
+    }
+
+    if p.Memory[location] & 0x40 == 0x40 {
         p.setOverflowFlag(true)
     }
 
-    p.setNegativeAndZeroFlags(result)
+    if p.Memory[location] & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+    }
 }
 
 func (p *CPU) Clc() {
