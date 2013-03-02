@@ -13,36 +13,52 @@ type Operation func(*CPU)
 
 var opcodes = map[Opcode]Operation {
     0x69: func(p *CPU) {
-        location := p.Address((*CPU).Immediate)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).Immediate))
     },
     0x65: func(p *CPU) {
-        location := p.Address((*CPU).ZeroPage)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).ZeroPage))
     },
     0x75: func(p *CPU) {
-        location := p.Address((*CPU).ZeroPageX)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).ZeroPageX))
     },
     0x6d: func(p *CPU) {
-        location := p.Address((*CPU).Absolute)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).Absolute))
     },
     0x7d: func(p *CPU) {
-        location := p.Address((*CPU).AbsoluteX)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).AbsoluteX))
     },
     0x79: func(p *CPU) {
-        location := p.Address((*CPU).AbsoluteY)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).AbsoluteY))
     },
     0x61: func(p *CPU) {
-        location := p.Address((*CPU).IndexedIndirect)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).IndexedIndirect))
     },
     0x71: func(p *CPU) {
-        location := p.Address((*CPU).IndirectIndexed)
-        p.Adc(location)
+        p.Adc(p.Address((*CPU).IndirectIndexed))
+    },
+    0x29: func(p *CPU) {
+        p.And(p.Address((*CPU).Immediate))
+    },
+    0x25: func(p *CPU) {
+        p.And(p.Address((*CPU).ZeroPage))
+    },
+    0x35: func(p *CPU) {
+        p.And(p.Address((*CPU).ZeroPageX))
+    },
+    0x2d: func(p *CPU) {
+        p.And(p.Address((*CPU).Absolute))
+    },
+    0x3d: func(p *CPU) {
+        p.And(p.Address((*CPU).AbsoluteX))
+    },
+    0x39: func(p *CPU) {
+        p.And(p.Address((*CPU).AbsoluteY))
+    },
+    0x21: func(p *CPU) {
+        p.And(p.Address((*CPU).IndexedIndirect))
+    },
+    0x31: func(p *CPU) {
+        p.And(p.Address((*CPU).IndirectIndexed))
     },
 }
 
