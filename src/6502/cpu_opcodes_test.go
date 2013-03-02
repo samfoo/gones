@@ -36,6 +36,46 @@ func TestBitOpcodes(t *testing.T) {
     }
 }
 
+func TestBmiOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x80
+    p.execute(0x30, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bmi with zero set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x30, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bmi withput zero set branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+}
+
+func TestBplOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x80
+    p.execute(0x10, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bpl with zero set branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x10, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bpl withput zero didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+}
+
 func TestBneOpcode(t *testing.T) {
     var p = new(CPU)
     p.Reset()

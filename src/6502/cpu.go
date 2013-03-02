@@ -97,6 +97,12 @@ var opcodes = map[Opcode]Operation {
     0x2c: func(p *CPU) {
         p.Bit(p.Address((*CPU).Absolute))
     },
+    0x30: func(p *CPU) {
+        p.Bmi(p.Address((*CPU).Relative))
+    },
+    0x10: func(p *CPU) {
+        p.Bpl(p.Address((*CPU).Relative))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
