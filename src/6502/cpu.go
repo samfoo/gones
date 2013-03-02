@@ -79,6 +79,12 @@ var opcodes = map[Opcode]Operation {
         address := p.Address((*CPU).AbsoluteX)
         p.Asl(&p.Memory[address])
     },
+    0x90: func(p *CPU) {
+        p.Bcc(p.Address((*CPU).Relative))
+    },
+    0xb0: func(p *CPU) {
+        p.Bcs(p.Address((*CPU).Relative))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
@@ -101,6 +107,17 @@ func (p *CPU) Address(mode AddressMode) Address {
     p.PC += Address(i)
 
     return location
+}
+
+func (p *CPU) Relative() (Address, int) {
+    var offset = Address(p.Memory[p.PC])
+    if offset < 0x80 {
+        offset += p.PC + 1
+    } else {
+        offset += (p.PC - 0x100) + 1
+    }
+
+    return offset, 1
 }
 
 func (p *CPU) Immediate() (Address, int) {
@@ -546,9 +563,7 @@ func (p *CPU) Tya() {
 }
 
 func (p *CPU) Bcc(location Address) {
-    if p.Carry() {
-        p.PC += 1
-    } else {
+    if !p.Carry() {
         p.PC = location
     }
 }
@@ -556,47 +571,35 @@ func (p *CPU) Bcc(location Address) {
 func (p *CPU) Bcs(location Address) {
     if p.Carry() {
         p.PC = location
-    } else {
-        p.PC += 1
     }
 }
 
 func (p *CPU) Beq(location Address) {
     if p.Zero() {
         p.PC = location
-    } else {
-        p.PC += 1
     }
 }
 
 func (p *CPU) Bmi(location Address) {
     if p.Negative() {
         p.PC = location
-    } else {
-        p.PC += 1
     }
 }
 
 func (p *CPU) Bne(location Address) {
-    if p.Zero() {
-        p.PC += 1
-    } else {
+    if !p.Zero() {
         p.PC = location
     }
 }
 
 func (p *CPU) Bpl(location Address) {
-    if p.Negative() {
-        p.PC += 1
-    } else {
+    if !p.Negative() {
         p.PC = location
     }
 }
 
 func (p *CPU) Bvc(location Address) {
-    if p.Overflow() {
-        p.PC += 1
-    } else {
+    if !p.Overflow() {
         p.PC = location
     }
 }
@@ -604,8 +607,6 @@ func (p *CPU) Bvc(location Address) {
 func (p *CPU) Bvs(location Address) {
     if p.Overflow() {
         p.PC = location
-    } else {
-        p.PC += 1
     }
 }
 

@@ -12,6 +12,55 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func TestBcsOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x01
+    p.execute(0xb0, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bcs with carry set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0xb0, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bcs without carry branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+}
+
+func TestBccOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x01
+    p.execute(0x90, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("Bcc with carry set branched")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x90, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("Bcc without carry set didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    p.Flags = 0x00
+    p.execute(0x90, []byte{0xff})
+    if p.PC != 0x00 {
+        t.Errorf("Bcc with negative offset didn't branch correctly")
+        t.Errorf("Expected %#02x, got %#02x", 0x00, p.PC)
+    }
+}
+
 func TestAslOpcodes(t *testing.T) {
     var p = new(CPU)
     p.Reset()

@@ -20,9 +20,9 @@ func TestBccDoesntBranchIfCarry(t *testing.T) {
     p.Flags = 0x01
     p.Bcc(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("BCC branched when carry flag was set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -32,9 +32,9 @@ func TestBcsNoBranchIfNoCarry(t *testing.T) {
     p.Flags = 0x00
     p.Bcs(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("BCS branched when carry flag was not set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -56,9 +56,9 @@ func TestBeqDoesntBranchIfNoZero(t *testing.T) {
     p.Flags = 0x00
     p.Beq(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("BEQ branched when zero flag was not set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -92,9 +92,9 @@ func TestBmiDoesntBranchIfNoNegative(t *testing.T) {
     p.Flags = 0x00
     p.Bmi(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("Bmi branched when negative flag was not set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -116,9 +116,9 @@ func TestBneDoesntBranchIfZero(t *testing.T) {
     p.Flags = 0x02
     p.Bne(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("BNE branched when zero flag was set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -140,9 +140,9 @@ func TestBplDoesntBranchIfNegative(t *testing.T) {
     p.Flags = 0x80
     p.Bpl(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("Bpl branched when negative flag was set")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -164,9 +164,9 @@ func TestBvcNoBranchIfOverflow(t *testing.T) {
     p.Flags = 0x40
     p.Bvc(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("Bvc branched when overflow present")
-        t.Errorf("Expected %#04x, got %#04x", 0x0001, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
@@ -176,9 +176,9 @@ func TestBvsNoBranchIfOverflowClear(t *testing.T) {
     p.Flags = 0x00
     p.Bvs(0x0025)
 
-    if p.PC != 0x0001 {
+    if p.PC != 0x0000 {
         t.Errorf("Bvs branched when overflow clear")
-        t.Errorf("Expected %#04x, got %#04x", 0x0025, p.PC)
+        t.Errorf("Expected %#04x, got %#04x", 0x0000, p.PC)
     }
 }
 
