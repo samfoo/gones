@@ -60,6 +60,25 @@ var opcodes = map[Opcode]Operation {
     0x31: func(p *CPU) {
         p.And(p.Address((*CPU).IndirectIndexed))
     },
+    0x0a: func(p *CPU) {
+        p.Asl(&p.A)
+    },
+    0x06: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPage)
+        p.Asl(&p.Memory[address])
+    },
+    0x16: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPageX)
+        p.Asl(&p.Memory[address])
+    },
+    0x0e: func(p *CPU) {
+        address := p.Address((*CPU).Absolute)
+        p.Asl(&p.Memory[address])
+    },
+    0x1e: func(p *CPU) {
+        address := p.Address((*CPU).AbsoluteX)
+        p.Asl(&p.Memory[address])
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
