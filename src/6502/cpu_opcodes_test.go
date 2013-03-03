@@ -2,6 +2,26 @@ package cpu
 
 import "testing"
 
+func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU)) {
+    var p = new(CPU)
+    p.Reset()
+    branch(p)
+    p.execute(op, []byte{0x02})
+    if p.PC != 0x03 {
+        t.Errorf("%#02x did't branch when it should have", op)
+        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
+    }
+
+    p = new(CPU)
+    p.Reset()
+    nobranch(p)
+    p.execute(op, []byte{0x02})
+    if p.PC != 0x01 {
+        t.Errorf("%#02x branched when it shouldn't have", op)
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
+    }
+}
+
 func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     for i := range arguments {
         p.Memory[i] = arguments[i]
@@ -49,172 +69,59 @@ func TestBitOpcodes(t *testing.T) {
 }
 
 func TestBvsOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x40
-    p.execute(0x70, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bvs with overflow set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x70, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bvs without overflow branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
+    branchTest(t, 0x70,
+        func(p *CPU) { p.Flags = 0x40 },
+        func(p *CPU) { p.Flags = 0x00 },
+    )
 }
 
 func TestBvcOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x40
-    p.execute(0x50, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bvc with overflow set branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x50, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bvc without overflow set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
+    branchTest(t, 0x50,
+        func(p *CPU) { p.Flags = 0x00 },
+        func(p *CPU) { p.Flags = 0x40 },
+    )
 }
 
 func TestBmiOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x80
-    p.execute(0x30, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bmi with zero set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x30, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bmi withput zero set branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
+    branchTest(t, 0x30,
+        func(p *CPU) { p.Flags = 0x80 },
+        func(p *CPU) { p.Flags = 0x00 },
+    )
 }
 
 func TestBplOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x80
-    p.execute(0x10, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bpl with zero set branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x10, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bpl withput zero didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
+    branchTest(t, 0x10,
+        func(p *CPU) { p.Flags = 0x00 },
+        func(p *CPU) { p.Flags = 0x80 },
+    )
 }
 
 func TestBneOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x02
-    p.execute(0xd0, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bne with zero set branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0xd0, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bne withput zero set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
+    branchTest(t, 0xd0,
+        func(p *CPU) { p.Flags = 0x00 },
+        func(p *CPU) { p.Flags = 0x02 },
+    )
 }
 
 func TestBeqOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x02
-    p.execute(0xf0, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Beq with zero set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0xf0, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Beq withput zero branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
+    branchTest(t, 0xf0,
+        func(p *CPU) { p.Flags = 0x02 },
+        func(p *CPU) { p.Flags = 0x00 },
+    )
 }
 
 func TestBcsOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x01
-    p.execute(0xb0, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bcs with carry set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0xb0, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bcs without carry branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
+    branchTest(t, 0xb0,
+        func(p *CPU) { p.Flags = 0x01 },
+        func(p *CPU) { p.Flags = 0x00 },
+    )
 }
 
 func TestBccOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x01
-    p.execute(0x90, []byte{0x02})
-    if p.PC != 0x01 {
-        t.Errorf("Bcc with carry set branched")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x90, []byte{0x02})
-    if p.PC != 0x03 {
-        t.Errorf("Bcc without carry set didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Flags = 0x00
-    p.execute(0x90, []byte{0xff})
-    if p.PC != 0x00 {
-        t.Errorf("Bcc with negative offset didn't branch correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x00, p.PC)
-    }
+    branchTest(t, 0x90,
+        func(p *CPU) { p.Flags = 0x00 },
+        func(p *CPU) { p.Flags = 0x01 },
+    )
 }
 
 func TestAslOpcodes(t *testing.T) {
