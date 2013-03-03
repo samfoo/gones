@@ -112,6 +112,18 @@ var opcodes = map[Opcode]Operation {
     0x70: func(p *CPU) {
         p.Bvs(p.Address((*CPU).Relative))
     },
+    0x18: func(p *CPU) {
+        p.Clc()
+    },
+    0xd8: func(p *CPU) {
+        p.Cld()
+    },
+    0x58: func(p *CPU) {
+        p.Cli()
+    },
+    0xb8: func(p *CPU) {
+        p.Clv()
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
@@ -378,6 +390,10 @@ func (p *CPU) Bit(location Address) {
 
 func (p *CPU) Clc() {
     p.setCarryFlag(false)
+}
+
+func (p *CPU) Cld() {
+    p.setDecimalFlag(false)
 }
 
 func (p *CPU) Cli() {

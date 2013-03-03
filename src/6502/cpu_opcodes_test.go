@@ -32,6 +32,46 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func TestClcOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x01
+    p.execute(0x18, []byte{})
+    if p.Carry() {
+        t.Errorf("Carry flag still set after CLC")
+    }
+}
+
+func TestCldOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x08
+    p.execute(0xd8, []byte{})
+    if p.Decimal() {
+        t.Errorf("Decimal flag still set after CLD")
+    }
+}
+
+func TestCliOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x04
+    p.execute(0x58, []byte{})
+    if p.InterruptDisable() {
+        t.Errorf("Interrup flag still set after CLI")
+    }
+}
+
+func TestClvOpcode(t *testing.T) {
+    var p = new(CPU)
+    p.Reset()
+    p.Flags = 0x40
+    p.execute(0xb8, []byte{})
+    if p.Overflow() {
+        t.Errorf("Overflow flag still set after CLV")
+    }
+}
+
 func TestBrkOpcode(t *testing.T) {
     var p = new(CPU)
     p.Reset()
