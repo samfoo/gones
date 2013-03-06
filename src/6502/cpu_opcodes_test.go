@@ -49,6 +49,51 @@ func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
         }, func(p *CPU) bool { return p.Flags & flag == 0x00 })
 }
 
+func TestIncrementRegistersOpcodes(t *testing.T) {
+    testOp(t, "Inx",
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xe8, []byte{})
+            },
+            func(p *CPU) bool {
+                return p.X == 0x02
+            })
+
+    testOp(t, "Iny",
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0xc8, []byte{})
+            },
+            func(p *CPU) bool {
+                return p.Y == 0x02
+            })
+}
+
+func TestIncOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool {
+        return p.Memory[0x02] == 0xff
+    }
+
+    tests := map[string]func(*CPU) {
+        "Inc zero page": func(p *CPU) { p.execute(0xe6, []byte{0x02, 0x00, 0xfe}) },
+        "Inc zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xf6, []byte{0x01, 0x00, 0xfe})
+            },
+        "Inc absolute": func(p *CPU) { p.execute(0xee, []byte{0x02, 0x00, 0xfe}) },
+        "Inc absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xfe, []byte{0x01, 0x00, 0xfe})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
 func TestDecrementRegistersOpcodes(t *testing.T) {
     testOp(t, "Dex",
             func(p *CPU) {
