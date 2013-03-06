@@ -330,14 +330,25 @@ func TestBccOpcode(t *testing.T) {
     )
 }
 
-func TestAslOpcodes(t *testing.T) {
+func TestShiftAndRotateOpcodes(t *testing.T) {
     testOp(t, "Asl accumulator", func(p *CPU) {
             p.A = 0x0f
             p.execute(0x0a, []byte{})
         }, func(p *CPU) bool { return p.A == 0x1e })
+
     testOp(t, "Lsr accumulator", func(p *CPU) {
             p.A = 0x3c
             p.execute(0x4a, []byte{})
+        }, func(p *CPU) bool { return p.A == 0x1e })
+
+    testOp(t, "Rol accumulator", func(p *CPU) {
+            p.A = 0x0f
+            p.execute(0x2a, []byte{})
+        }, func(p *CPU) bool { return p.A == 0x1e })
+
+    testOp(t, "Ror accumulator", func(p *CPU) {
+            p.A = 0x3c
+            p.execute(0x6a, []byte{})
         }, func(p *CPU) bool { return p.A == 0x1e })
 
     successful := func(p *CPU) bool {
@@ -373,6 +384,34 @@ func TestAslOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.X = 0x01
                 p.execute(0x5e, []byte{0x01, 0x00, 0x3c})
+            },
+        "Rol zero page":
+            func(p *CPU) { p.execute(0x26, []byte{0x02, 0x00, 0x0f}) },
+        "Rol zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x36, []byte{0x01, 0x00, 0x0f})
+            },
+        "Rol absolute":
+            func(p *CPU) { p.execute(0x2e, []byte{0x02, 0x00, 0x0f}) },
+        "Rol absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x3e, []byte{0x01, 0x00, 0x0f})
+            },
+        "Ror zero page":
+            func(p *CPU) { p.execute(0x66, []byte{0x02, 0x00, 0x3c}) },
+        "Ror zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x76, []byte{0x01, 0x00, 0x3c})
+            },
+        "Ror absolute":
+            func(p *CPU) { p.execute(0x6e, []byte{0x02, 0x00, 0x3c}) },
+        "Ror absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x7e, []byte{0x01, 0x00, 0x3c})
             },
     }
 

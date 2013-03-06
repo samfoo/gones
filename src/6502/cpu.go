@@ -335,6 +335,56 @@ var opcodes = map[Opcode]Operation {
     0x11: func(p *CPU) {
         p.Ora(p.Address((*CPU).IndirectIndexed))
     },
+    0x48: func(p *CPU) {
+        p.Pha()
+    },
+    0x08: func(p *CPU) {
+        p.Php()
+    },
+    0x68: func(p *CPU) {
+        p.Pla()
+    },
+    0x28: func(p *CPU) {
+        p.Plp()
+    },
+    0x2a: func(p *CPU) {
+        p.Rol(&p.A)
+    },
+    0x26: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPage)
+        p.Rol(&p.Memory[address])
+    },
+    0x36: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPageX)
+        p.Rol(&p.Memory[address])
+    },
+    0x2e: func(p *CPU) {
+        address := p.Address((*CPU).Absolute)
+        p.Rol(&p.Memory[address])
+    },
+    0x3e: func(p *CPU) {
+        address := p.Address((*CPU).AbsoluteX)
+        p.Rol(&p.Memory[address])
+    },
+    0x6a: func(p *CPU) {
+        p.Ror(&p.A)
+    },
+    0x66: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPage)
+        p.Ror(&p.Memory[address])
+    },
+    0x76: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPageX)
+        p.Ror(&p.Memory[address])
+    },
+    0x6e: func(p *CPU) {
+        address := p.Address((*CPU).Absolute)
+        p.Ror(&p.Memory[address])
+    },
+    0x7e: func(p *CPU) {
+        address := p.Address((*CPU).AbsoluteX)
+        p.Ror(&p.Memory[address])
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
