@@ -32,79 +32,59 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
-func TestClcOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x01
-    p.execute(0x18, []byte{})
-    if p.Carry() {
-        t.Errorf("Carry flag still set after CLC")
-    }
+func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
+    testOp(t, name, func(p *CPU) {
+            p.Flags = flag
+            p.execute(opcode, []byte{})
+        }, func(p *CPU) bool { return p.Flags & flag == 0x00 })
 }
 
-func TestCldOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x08
-    p.execute(0xd8, []byte{})
-    if p.Decimal() {
-        t.Errorf("Decimal flag still set after CLD")
+func TestClearOpcodes(t *testing.T) {
+    flags := map[string]byte {
+        "Clc": 0x01,
+        "Cli": 0x04,
+        "Clv": 0x40,
     }
-}
 
-func TestCliOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x04
-    p.execute(0x58, []byte{})
-    if p.InterruptDisable() {
-        t.Errorf("Interrup flag still set after CLI")
+    tests := map[string]Opcode {
+        "Clc": 0x18,
+        "Cli": 0x58,
+        "Clv": 0xb8,
     }
-}
 
-func TestClvOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Flags = 0x40
-    p.execute(0xb8, []byte{})
-    if p.Overflow() {
-        t.Errorf("Overflow flag still set after CLV")
+    for name, opcode := range tests {
+        testClearFlag(t, name, flags[name], opcode)
     }
 }
 
 func TestBrkOpcode(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.Memory[0xfffe] = 0xff
-    p.Memory[0xffff] = 0xee
-    p.execute(0x00, []byte{})
-    if p.PC != 0xeeff {
-        t.Errorf("Brk didn't load the interrupt vector into PC")
-        t.Errorf("Expected %#04x, got %#04x", 0xeeff, p.PC)
-    }
+    testOp(t, "Brk implied", func(p *CPU) {
+            p.Memory[0xfffe] = 0xff
+            p.Memory[0xffff] = 0xee
+            p.execute(0x00, []byte{})
+        }, func(p *CPU) bool { return p.PC == 0xeeff })
 }
 
 func TestBitOpcodes(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.A = 0x00
-    p.execute(0x24, []byte{0x01, 0xff})
-    if !p.Zero() {
-        t.Errorf("Zero flag not set right")
-    }
-    if !p.Overflow() || !p.Negative() {
-        t.Errorf("Either the overflow or negative flag wasn't set right")
+    successful := func(p *CPU) bool {
+        return p.Zero() && p.Overflow() && p.Negative()
     }
 
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x00
-    p.execute(0x2c, []byte{0x02, 0x00, 0xff})
-    if !p.Zero() {
-        t.Errorf("Zero flag not set right")
+    tests := map[string]func(*CPU) {
+        "Bit zero page":
+            func(p *CPU) {
+                p.A = 0x00
+                p.execute(0x24, []byte{0x01, 0xff})
+            },
+        "Bit absolute":
+            func(p *CPU) {
+                p.A = 0x00
+                p.execute(0x2c, []byte{0x02, 0x00, 0xff})
+            },
     }
-    if !p.Overflow() || !p.Negative() {
-        t.Errorf("Either the overflow or negative flag wasn't set right")
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
     }
 }
 
@@ -164,6 +144,16 @@ func TestBccOpcode(t *testing.T) {
     )
 }
 
+func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) bool) {
+    var p = new(CPU)
+    p.Reset()
+    run(p)
+
+    if !assertion(p) {
+        t.Errorf("%s failed", name)
+    }
+}
+
 func TestAslOpcodes(t *testing.T) {
     var p = new(CPU)
     p.Reset()
@@ -210,151 +200,99 @@ func TestAslOpcodes(t *testing.T) {
 }
 
 func TestAndOpcodes(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.execute(0x29, []byte{0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And immediate failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
+    successful := func(p *CPU) bool { return p.A == 0x01 }
+
+    tests := map[string]func(*CPU) {
+        "And immediate":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x29, []byte{0x0f})
+            },
+        "And zero page":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x25, []byte{0x01, 0x0f})
+            },
+        "And zero page X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x35, []byte{0x01, 0x00, 0x0f})
+            },
+        "And absolute":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x2d, []byte{0x02, 0x00, 0x0f})
+            },
+        "And absolute X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x3d, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "And absolute Y":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x39, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "And indexed indirect":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x21, []byte{0x00, 0x03, 0x00, 0x0f})
+            },
+        "And indirect indexed":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x31, []byte{0x01, 0x00, 0x0f})
+            },
     }
 
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.execute(0x25, []byte{0x01, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And zero page failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.X = 0x01
-    p.execute(0x35, []byte{0x01, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And zero page X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.execute(0x2d, []byte{0x02, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And absolute failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.X = 0x01
-    p.execute(0x3d, []byte{0x02, 0x00, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And absolute X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.Y = 0x01
-    p.execute(0x39, []byte{0x02, 0x00, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And absolute Y failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.X = 0x01
-    p.execute(0x21, []byte{0x00, 0x03, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And indexed indirect failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.A = 0x41
-    p.Y = 0x01
-    p.execute(0x31, []byte{0x01, 0x00, 0x0f})
-    if p.A != 0x01 {
-        t.Errorf("And indirect indexed failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
+    for name, test := range tests {
+        testOp(t, name, test, successful)
     }
 }
 
 func TestAdcOpcodes(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.execute(0x69, []byte{0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc immediate failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
+    successful := func(p *CPU) bool { return p.A == 0x11 }
+
+    tests := map[string]func(*CPU) {
+        "Adc immediate":
+            func(p *CPU) { p.execute(0x69, []byte{0x11}) },
+        "Adc zero page":
+            func(p *CPU) { p.execute(0x65, []byte{0x01, 0x11}) },
+        "Adc zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x75, []byte{0x01, 0x00, 0x11})
+            },
+        "Adc absolute":
+            func(p *CPU) { p.execute(0x6d, []byte{0x02, 0x00, 0x11}) },
+        "Adc absolute X":
+            func(p *CPU) {
+                p.X = 0x02
+                p.execute(0x7d, []byte{0x00, 0x00, 0x11})
+            },
+        "Adc absolute Y":
+            func(p *CPU) {
+                p.Y = 0x02
+                p.execute(0x79, []byte{0x00, 0x00, 0x11})
+            },
+        "Adc indexed indirect":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x61, []byte{0x00, 0x03, 0x00, 0x11})
+            },
+        "Adc indirect indexed":
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0x71, []byte{0x01, 0x00, 0x11})
+            },
     }
 
-    p = new(CPU)
-    p.Reset()
-    p.execute(0x65, []byte{0x01, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc zero page failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.X = 0x01
-    p.execute(0x75, []byte{0x01, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc zero page X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.execute(0x6d, []byte{0x02, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc absolute failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.X = 0x02
-    p.execute(0x7d, []byte{0x00, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc absolute X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Y = 0x02
-    p.execute(0x79, []byte{0x00, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc absolute Y failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.X = 0x01
-    p.execute(0x61, []byte{0x00, 0x03, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc indexed indirect failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.Y = 0x01
-    p.execute(0x71, []byte{0x01, 0x00, 0x11})
-    if p.A != 0x11 {
-        t.Errorf("Adc indirect indexed failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x11, p.A)
+    for name, test := range tests {
+        testOp(t, name, test, successful)
     }
 }
