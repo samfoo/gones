@@ -22,6 +22,16 @@ func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU))
     }
 }
 
+func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) bool) {
+    var p = new(CPU)
+    p.Reset()
+    run(p)
+
+    if !assertion(p) {
+        t.Errorf("%s failed", name)
+    }
+}
+
 func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     for i := range arguments {
         p.Memory[i] = arguments[i]
@@ -37,6 +47,62 @@ func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
             p.Flags = flag
             p.execute(opcode, []byte{})
         }, func(p *CPU) bool { return p.Flags & flag == 0x00 })
+}
+
+func TestCmpOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.Carry() && p.Zero() }
+
+    tests := map[string]func(*CPU) {
+        "Cmp immediate":
+            func(p *CPU) {
+                p.A = 0x11
+                p.execute(0xc9, []byte{0x11})
+            },
+        "Cmp zero page":
+            func(p *CPU) {
+                p.A = 0x11
+                p.execute(0xc5, []byte{0x01, 0x11})
+            },
+        "Cmp zero page X":
+            func(p *CPU) {
+                p.A = 0x11
+                p.X = 0x01
+                p.execute(0xd5, []byte{0x01, 0x00, 0x11})
+            },
+        "Cmp absolute":
+            func(p *CPU) {
+                p.A = 0x11
+                p.execute(0xcd, []byte{0x02, 0x00, 0x11})
+            },
+        "Cmp absolute X":
+            func(p *CPU) {
+                p.A = 0x11
+                p.X = 0x02
+                p.execute(0xdd, []byte{0x00, 0x00, 0x11})
+            },
+        "Cmp absolute Y":
+            func(p *CPU) {
+                p.A = 0x11
+                p.Y = 0x02
+                p.execute(0xd9, []byte{0x00, 0x00, 0x11})
+            },
+        "Cmp indexed indirect":
+            func(p *CPU) {
+                p.A = 0x11
+                p.X = 0x01
+                p.execute(0xc1, []byte{0x00, 0x03, 0x00, 0x11})
+            },
+        "Cmp indirect indexed":
+            func(p *CPU) {
+                p.A = 0x11
+                p.Y = 0x01
+                p.execute(0xd1, []byte{0x01, 0x00, 0x11})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
 }
 
 func TestClearOpcodes(t *testing.T) {
@@ -142,16 +208,6 @@ func TestBccOpcode(t *testing.T) {
         func(p *CPU) { p.Flags = 0x00 },
         func(p *CPU) { p.Flags = 0x01 },
     )
-}
-
-func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) bool) {
-    var p = new(CPU)
-    p.Reset()
-    run(p)
-
-    if !assertion(p) {
-        t.Errorf("%s failed", name)
-    }
 }
 
 func TestAslOpcodes(t *testing.T) {
