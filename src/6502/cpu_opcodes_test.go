@@ -375,6 +375,125 @@ func TestAslOpcodes(t *testing.T) {
     }
 }
 
+func TestJumpOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.PC == 0xbeef }
+
+    tests := map[string]func(*CPU) {
+        "Jmp absolute":
+            func(p *CPU) {
+                p.execute(0x4c, []byte{0xef, 0xbe})
+            },
+        "Jmp indirect":
+            func(p *CPU) {
+                p.execute(0x6c, []byte{0x02, 0x00, 0xef, 0xbe})
+            },
+        "Jsr absolute":
+            func(p *CPU) {
+                p.execute(0x20, []byte{0xef, 0xbe})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
+func TestLdyOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.Y == 0x0f }
+
+    tests := map[string]func(*CPU) {
+        "Ldy immediate":
+            func(p *CPU) { p.execute(0xa0, []byte{0x0f}) },
+        "Ldy zero page":
+            func(p *CPU) { p.execute(0xa4, []byte{0x01, 0x0f}) },
+        "Ldy zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xb4, []byte{0x01, 0x00, 0x0f})
+            },
+        "Ldy absolute":
+            func(p *CPU) { p.execute(0xac, []byte{0x02, 0x00, 0x0f}) },
+        "Ldy absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xbc, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
+func TestLdxOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.X == 0x0f }
+
+    tests := map[string]func(*CPU) {
+        "Ldx immediate":
+            func(p *CPU) { p.execute(0xa2, []byte{0x0f}) },
+        "Ldx zero page":
+            func(p *CPU) { p.execute(0xa6, []byte{0x01, 0x0f}) },
+        "Ldx zero page Y":
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0xb6, []byte{0x01, 0x00, 0x0f})
+            },
+        "Ldx absolute":
+            func(p *CPU) { p.execute(0xae, []byte{0x02, 0x00, 0x0f}) },
+        "Ldx absolute Y":
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0xbe, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
+func TestLdaOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.A == 0x0f }
+
+    tests := map[string]func(*CPU) {
+        "Lda immediate":
+            func(p *CPU) { p.execute(0xa9, []byte{0x0f}) },
+        "Lda zero page":
+            func(p *CPU) { p.execute(0xa5, []byte{0x01, 0x0f}) },
+        "Lda zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xb5, []byte{0x01, 0x00, 0x0f})
+            },
+        "Lda absolute":
+            func(p *CPU) { p.execute(0xad, []byte{0x02, 0x00, 0x0f}) },
+        "Lda absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xbd, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Lda absolute Y":
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0xb9, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Lda indexed indirect":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xa1, []byte{0x00, 0x03, 0x00, 0x0f})
+            },
+        "Lda indirect indexed":
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0xb1, []byte{0x01, 0x00, 0x0f})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
 func TestEorOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.A == 0x4e }
 
@@ -430,6 +549,7 @@ func TestEorOpcodes(t *testing.T) {
         testOp(t, name, test, successful)
     }
 }
+
 func TestAndOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.A == 0x01 }
 

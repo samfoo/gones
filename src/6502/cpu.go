@@ -226,6 +226,69 @@ var opcodes = map[Opcode]Operation {
     0x51: func(p *CPU) {
         p.Eor(p.Address((*CPU).IndirectIndexed))
     },
+    0x4c: func(p *CPU) {
+        p.Jmp(p.Address((*CPU).Absolute))
+    },
+    0x6c: func(p *CPU) {
+        p.Jmp(p.Address((*CPU).Indirect))
+    },
+    0x20: func(p *CPU) {
+        p.Jsr(p.Address((*CPU).Absolute))
+    },
+    0xa9: func(p *CPU) {
+        p.Lda(p.Address((*CPU).Immediate))
+    },
+    0xa5: func(p *CPU) {
+        p.Lda(p.Address((*CPU).ZeroPage))
+    },
+    0xb5: func(p *CPU) {
+        p.Lda(p.Address((*CPU).ZeroPageX))
+    },
+    0xad: func(p *CPU) {
+        p.Lda(p.Address((*CPU).Absolute))
+    },
+    0xbd: func(p *CPU) {
+        p.Lda(p.Address((*CPU).AbsoluteX))
+    },
+    0xb9: func(p *CPU) {
+        p.Lda(p.Address((*CPU).AbsoluteY))
+    },
+    0xa1: func(p *CPU) {
+        p.Lda(p.Address((*CPU).IndexedIndirect))
+    },
+    0xb1: func(p *CPU) {
+        p.Lda(p.Address((*CPU).IndirectIndexed))
+    },
+    0xa2: func(p *CPU) {
+        p.Ldx(p.Address((*CPU).Immediate))
+    },
+    0xa6: func(p *CPU) {
+        p.Ldx(p.Address((*CPU).ZeroPage))
+    },
+    0xb6: func(p *CPU) {
+        p.Ldx(p.Address((*CPU).ZeroPageY))
+    },
+    0xae: func(p *CPU) {
+        p.Ldx(p.Address((*CPU).Absolute))
+    },
+    0xbe: func(p *CPU) {
+        p.Ldx(p.Address((*CPU).AbsoluteY))
+    },
+    0xa0: func(p *CPU) {
+        p.Ldy(p.Address((*CPU).Immediate))
+    },
+    0xa4: func(p *CPU) {
+        p.Ldy(p.Address((*CPU).ZeroPage))
+    },
+    0xb4: func(p *CPU) {
+        p.Ldy(p.Address((*CPU).ZeroPageX))
+    },
+    0xac: func(p *CPU) {
+        p.Ldy(p.Address((*CPU).Absolute))
+    },
+    0xbc: func(p *CPU) {
+        p.Ldy(p.Address((*CPU).AbsoluteX))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
@@ -273,6 +336,10 @@ func (p *CPU) ZeroPageX() (Address, int) {
     return Address(p.Memory[p.PC] + p.X), 1
 }
 
+func (p *CPU) ZeroPageY() (Address, int) {
+    return Address(p.Memory[p.PC] + p.Y), 1
+}
+
 func (p *CPU) absolute() Address {
     high := p.Memory[p.PC+1]
     low := p.Memory[p.PC]
@@ -290,6 +357,15 @@ func (p *CPU) AbsoluteX() (Address, int) {
 
 func (p *CPU) AbsoluteY() (Address, int) {
     return p.absolute() + Address(p.Y), 2
+}
+
+func (p *CPU) Indirect() (Address, int) {
+    location := p.absolute()
+
+    high := p.Memory[location+1]
+    low := p.Memory[location]
+
+    return (Address(high) << 8) + Address(low), 2
 }
 
 func (p *CPU) IndexedIndirect() (Address, int) {
