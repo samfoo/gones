@@ -500,6 +500,62 @@ func TestLdaOpcodes(t *testing.T) {
     }
 }
 
+func TestOraOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.A == 0x4f }
+
+    tests := map[string]func(*CPU) {
+        "Ora immediate":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x09, []byte{0x0f})
+            },
+        "Ora zero page":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x05, []byte{0x01, 0x0f})
+            },
+        "Ora zero page X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x15, []byte{0x01, 0x00, 0x0f})
+            },
+        "Ora absolute":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x0d, []byte{0x02, 0x00, 0x0f})
+            },
+        "Ora absolute X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x1d, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Ora absolute Y":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x19, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Ora indexed indirect":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x01, []byte{0x00, 0x03, 0x00, 0x0f})
+            },
+        "Ora indirect indexed":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x11, []byte{0x01, 0x00, 0x0f})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
 func TestEorOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.A == 0x4e }
 

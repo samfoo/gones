@@ -310,7 +310,31 @@ var opcodes = map[Opcode]Operation {
     },
     0xea: func(p *CPU) {
         p.Nop()
-    }
+    },
+    0x09: func(p *CPU) {
+        p.Ora(p.Address((*CPU).Immediate))
+    },
+    0x05: func(p *CPU) {
+        p.Ora(p.Address((*CPU).ZeroPage))
+    },
+    0x15: func(p *CPU) {
+        p.Ora(p.Address((*CPU).ZeroPageX))
+    },
+    0x0d: func(p *CPU) {
+        p.Ora(p.Address((*CPU).Absolute))
+    },
+    0x1d: func(p *CPU) {
+        p.Ora(p.Address((*CPU).AbsoluteX))
+    },
+    0x19: func(p *CPU) {
+        p.Ora(p.Address((*CPU).AbsoluteY))
+    },
+    0x01: func(p *CPU) {
+        p.Ora(p.Address((*CPU).IndexedIndirect))
+    },
+    0x11: func(p *CPU) {
+        p.Ora(p.Address((*CPU).IndirectIndexed))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
