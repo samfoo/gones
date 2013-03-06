@@ -308,6 +308,9 @@ var opcodes = map[Opcode]Operation {
         address := p.Address((*CPU).AbsoluteX)
         p.Lsr(&p.Memory[address])
     },
+    0xea: func(p *CPU) {
+        p.Nop()
+    }
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
