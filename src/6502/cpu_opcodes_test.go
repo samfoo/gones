@@ -375,6 +375,61 @@ func TestAslOpcodes(t *testing.T) {
     }
 }
 
+func TestEorOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.A == 0x4e }
+
+    tests := map[string]func(*CPU) {
+        "Eor immediate":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x49, []byte{0x0f})
+            },
+        "Eor zero page":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x45, []byte{0x01, 0x0f})
+            },
+        "Eor zero page X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x55, []byte{0x01, 0x00, 0x0f})
+            },
+        "Eor absolute":
+            func(p *CPU) {
+                p.A = 0x41
+                p.execute(0x4d, []byte{0x02, 0x00, 0x0f})
+            },
+        "Eor absolute X":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x5d, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Eor absolute Y":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x59, []byte{0x02, 0x00, 0x00, 0x0f})
+            },
+        "Eor indexed indirect":
+            func(p *CPU) {
+                p.A = 0x41
+                p.X = 0x01
+                p.execute(0x41, []byte{0x00, 0x03, 0x00, 0x0f})
+            },
+        "Eor indirect indexed":
+            func(p *CPU) {
+                p.A = 0x41
+                p.Y = 0x01
+                p.execute(0x51, []byte{0x01, 0x00, 0x0f})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
 func TestAndOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.A == 0x01 }
 
