@@ -49,6 +49,51 @@ func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
         }, func(p *CPU) bool { return p.Flags & flag == 0x00 })
 }
 
+func TestDecrementRegistersOpcodes(t *testing.T) {
+    testOp(t, "Dex",
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xca, []byte{})
+            },
+            func(p *CPU) bool {
+                return p.X == 0x00
+            })
+
+    testOp(t, "Dey",
+            func(p *CPU) {
+                p.Y = 0x01
+                p.execute(0x88, []byte{})
+            },
+            func(p *CPU) bool {
+                return p.Y == 0x00
+            })
+}
+
+func TestDecOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool {
+        return p.Memory[0x02] == 0xfe
+    }
+
+    tests := map[string]func(*CPU) {
+        "Dec zero page": func(p *CPU) { p.execute(0xc6, []byte{0x02, 0x00, 0xff}) },
+        "Dec zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xd6, []byte{0x01, 0x00, 0xff})
+            },
+        "Dec absolute": func(p *CPU) { p.execute(0xce, []byte{0x02, 0x00, 0xff}) },
+        "Dec absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0xde, []byte{0x01, 0x00, 0xff})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
 func TestCompareOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.Carry() && p.Zero() }
 
