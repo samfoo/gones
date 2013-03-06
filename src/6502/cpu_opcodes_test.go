@@ -331,47 +331,35 @@ func TestBccOpcode(t *testing.T) {
 }
 
 func TestAslOpcodes(t *testing.T) {
-    var p = new(CPU)
-    p.Reset()
-    p.A = 0x0f
-    p.execute(0x0a, []byte{})
-    if p.A != 0x1e {
-        t.Errorf("Asl accumulator failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x1e, p.A)
+    testOp(t, "Asl accumulator", func(p *CPU) {
+            p.A = 0x0f
+            p.execute(0x0a, []byte{})
+        }, func(p *CPU) bool { return p.A == 0x1e })
+
+    successful := func(p *CPU) bool {
+        return p.Memory[2] == 0x1e
     }
 
-    p = new(CPU)
-    p.Reset()
-    p.execute(0x06, []byte{0x01, 0x0f})
-    if p.Memory[1] != 0x1e {
-        t.Errorf("Asl zero page failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x1e, p.Memory[1])
+
+    tests := map[string]func(*CPU) {
+        "Asl zero page":
+            func(p *CPU) { p.execute(0x06, []byte{0x02, 0x00, 0x0f}) },
+        "Asl zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x16, []byte{0x01, 0x00, 0x0f})
+            },
+        "Asl absolute":
+            func(p *CPU) { p.execute(0x0e, []byte{0x02, 0x00, 0x0f}) },
+        "Asl absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x1e, []byte{0x01, 0x00, 0x0f})
+            },
     }
 
-    p = new(CPU)
-    p.Reset()
-    p.X = 0x01
-    p.execute(0x16, []byte{0x01, 0x00, 0x0f})
-    if p.Memory[2] != 0x1e {
-        t.Errorf("Asl zero page X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x1e, p.Memory[2])
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.execute(0x0e, []byte{0x02, 0x00, 0x0f})
-    if p.Memory[2] != 0x1e {
-        t.Errorf("Asl absolute failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x1e, p.Memory[2])
-    }
-
-    p = new(CPU)
-    p.Reset()
-    p.X = 0x01
-    p.execute(0x1e, []byte{0x02, 0x00, 0x00, 0x0f})
-    if p.Memory[3] != 0x1e {
-        t.Errorf("Asl absolute X failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x1e, p.Memory[3])
+    for name, test := range tests {
+        testOp(t, name, test, successful)
     }
 }
 
