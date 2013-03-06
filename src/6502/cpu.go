@@ -415,6 +415,15 @@ var opcodes = map[Opcode]Operation {
     0xf1: func(p *CPU) {
         p.Sbc(p.Address((*CPU).IndirectIndexed))
     },
+    0x38: func(p *CPU) {
+        p.Sec()
+    },
+    0xf8: func(p *CPU) {
+        p.Sed()
+    },
+    0x78: func(p *CPU) {
+        p.Sei()
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {

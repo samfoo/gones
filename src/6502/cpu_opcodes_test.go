@@ -42,6 +42,13 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     return p
 }
 
+func testSetFlag(t *testing.T, name string, flag byte, opcode Opcode) {
+    testOp(t, name, func(p *CPU) {
+            p.Flags = flag
+            p.execute(opcode, []byte{})
+        }, func(p *CPU) bool { return p.Flags & flag == flag })
+}
+
 func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
     testOp(t, name, func(p *CPU) {
             p.Flags = flag
@@ -225,10 +232,29 @@ func TestCompareOpcodes(t *testing.T) {
     }
 }
 
+func TestSetOpcodes(t *testing.T) {
+    flags := map[string]byte {
+        "Sec": 0x01,
+        "Sei": 0x04,
+        "Sed": 0x08,
+    }
+
+    tests := map[string]Opcode {
+        "Sec": 0x38,
+        "Sei": 0x78,
+        "Sed": 0xf8,
+    }
+
+    for name, opcode := range tests {
+        testSetFlag(t, name, flags[name], opcode)
+    }
+}
+
 func TestClearOpcodes(t *testing.T) {
     flags := map[string]byte {
         "Clc": 0x01,
         "Cli": 0x04,
+        "Cld": 0x08,
         "Clv": 0x40,
     }
 
@@ -236,6 +262,7 @@ func TestClearOpcodes(t *testing.T) {
         "Clc": 0x18,
         "Cli": 0x58,
         "Clv": 0xb8,
+        "Cld": 0xd8,
     }
 
     for name, opcode := range tests {
