@@ -49,7 +49,7 @@ func testClearFlag(t *testing.T, name string, flag byte, opcode Opcode) {
         }, func(p *CPU) bool { return p.Flags & flag == 0x00 })
 }
 
-func TestCmpOpcodes(t *testing.T) {
+func TestCompareOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.Carry() && p.Zero() }
 
     tests := map[string]func(*CPU) {
@@ -97,6 +97,36 @@ func TestCmpOpcodes(t *testing.T) {
                 p.A = 0x11
                 p.Y = 0x01
                 p.execute(0xd1, []byte{0x01, 0x00, 0x11})
+            },
+        "Cpx immediate":
+            func(p *CPU) {
+                p.X = 0x11
+                p.execute(0xe0, []byte{0x11})
+            },
+        "Cpx zero page":
+            func(p *CPU) {
+                p.X = 0x11
+                p.execute(0xe4, []byte{0x01, 0x11})
+            },
+        "Cpx absolute":
+            func(p *CPU) {
+                p.X = 0x11
+                p.execute(0xec, []byte{0x02, 0x00, 0x11})
+            },
+        "Cpy immediate":
+            func(p *CPU) {
+                p.Y = 0x11
+                p.execute(0xc0, []byte{0x11})
+            },
+        "Cpy zero page":
+            func(p *CPU) {
+                p.Y = 0x11
+                p.execute(0xc4, []byte{0x01, 0x11})
+            },
+        "Cpy absolute":
+            func(p *CPU) {
+                p.Y = 0x11
+                p.execute(0xcc, []byte{0x02, 0x00, 0x11})
             },
     }
 
