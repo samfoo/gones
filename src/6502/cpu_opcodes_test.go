@@ -470,6 +470,89 @@ func TestJumpOpcodes(t *testing.T) {
     }
 }
 
+func TestStoreOpcodes(t *testing.T) {
+    successful := func(p *CPU) bool { return p.Memory[4] == 0x0f }
+
+    tests := map[string]func(*CPU) {
+        "Sta zero page":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.execute(0x85, []byte{0x04})
+            },
+        "Sta zero page X":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.X = 0x01
+                p.execute(0x95, []byte{0x03})
+            },
+        "Sta absolute":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.execute(0x8d, []byte{0x04, 0x00})
+            },
+        "Sta absolute X":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.X = 0x01
+                p.execute(0x9d, []byte{0x03, 0x00})
+            },
+        "Sta absolute Y":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.Y = 0x01
+                p.execute(0x99, []byte{0x03, 0x00})
+            },
+        "Sta indexed indirect":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.X = 0x01
+                p.execute(0x81, []byte{0x00, 0x04})
+            },
+        "Sta indirect indexed":
+            func(p *CPU) {
+                p.A = 0x0f
+                p.Y = 0x01
+                p.execute(0x91, []byte{0x03})
+            },
+        "Stx zero page":
+            func(p *CPU) {
+                p.X = 0x0f
+                p.execute(0x86, []byte{0x04})
+            },
+        "Stx zero page Y":
+            func(p *CPU) {
+                p.X = 0x0f
+                p.Y = 0x01
+                p.execute(0x96, []byte{0x03})
+            },
+        "Stx absolute":
+            func(p *CPU) {
+                p.X = 0x0f
+                p.execute(0x8e, []byte{0x04, 0x00})
+            },
+        "Sty zero page":
+            func(p *CPU) {
+                p.Y = 0x0f
+                p.execute(0x84, []byte{0x04})
+            },
+        "Sty zero page X":
+            func(p *CPU) {
+                p.Y = 0x0f
+                p.X = 0x01
+                p.execute(0x94, []byte{0x03})
+            },
+        "Sty absolute":
+            func(p *CPU) {
+                p.Y = 0x0f
+                p.execute(0x8c, []byte{0x04, 0x00})
+            },
+    }
+
+    for name, test := range tests {
+        testOp(t, name, test, successful)
+    }
+}
+
 func TestLdyOpcodes(t *testing.T) {
     successful := func(p *CPU) bool { return p.Y == 0x0f }
 

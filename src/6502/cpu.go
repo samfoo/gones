@@ -424,6 +424,45 @@ var opcodes = map[Opcode]Operation {
     0x78: func(p *CPU) {
         p.Sei()
     },
+    0x85: func(p *CPU) {
+        p.Sta(p.Address((*CPU).ZeroPage))
+    },
+    0x95: func(p *CPU) {
+        p.Sta(p.Address((*CPU).ZeroPageX))
+    },
+    0x8d: func(p *CPU) {
+        p.Sta(p.Address((*CPU).Absolute))
+    },
+    0x9d: func(p *CPU) {
+        p.Sta(p.Address((*CPU).AbsoluteX))
+    },
+    0x99: func(p *CPU) {
+        p.Sta(p.Address((*CPU).AbsoluteY))
+    },
+    0x81: func(p *CPU) {
+        p.Sta(p.Address((*CPU).IndexedIndirect))
+    },
+    0x91: func(p *CPU) {
+        p.Sta(p.Address((*CPU).IndirectIndexed))
+    },
+    0x84: func(p *CPU) {
+        p.Sty(p.Address((*CPU).ZeroPage))
+    },
+    0x94: func(p *CPU) {
+        p.Sty(p.Address((*CPU).ZeroPageX))
+    },
+    0x8c: func(p *CPU) {
+        p.Sty(p.Address((*CPU).Absolute))
+    },
+    0x86: func(p *CPU) {
+        p.Stx(p.Address((*CPU).ZeroPage))
+    },
+    0x96: func(p *CPU) {
+        p.Stx(p.Address((*CPU).ZeroPageY))
+    },
+    0x8e: func(p *CPU) {
+        p.Stx(p.Address((*CPU).Absolute))
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
