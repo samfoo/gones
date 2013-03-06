@@ -385,6 +385,12 @@ var opcodes = map[Opcode]Operation {
         address := p.Address((*CPU).AbsoluteX)
         p.Ror(&p.Memory[address])
     },
+    0x40: func(p *CPU) {
+        p.Rti()
+    },
+    0x60: func(p *CPU) {
+        p.Rts()
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
