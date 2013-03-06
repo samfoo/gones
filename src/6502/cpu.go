@@ -463,6 +463,24 @@ var opcodes = map[Opcode]Operation {
     0x8e: func(p *CPU) {
         p.Stx(p.Address((*CPU).Absolute))
     },
+    0xaa: func(p *CPU) {
+        p.Tax()
+    },
+    0xa8: func(p *CPU) {
+        p.Tay()
+    },
+    0xba: func(p *CPU) {
+        p.Tsx()
+    },
+    0x8a: func(p *CPU) {
+        p.Txa()
+    },
+    0x9a: func(p *CPU) {
+        p.Txs()
+    },
+    0x98: func(p *CPU) {
+        p.Tya()
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
