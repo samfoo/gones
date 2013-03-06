@@ -335,6 +335,10 @@ func TestAslOpcodes(t *testing.T) {
             p.A = 0x0f
             p.execute(0x0a, []byte{})
         }, func(p *CPU) bool { return p.A == 0x1e })
+    testOp(t, "Lsr accumulator", func(p *CPU) {
+            p.A = 0x3c
+            p.execute(0x4a, []byte{})
+        }, func(p *CPU) bool { return p.A == 0x1e })
 
     successful := func(p *CPU) bool {
         return p.Memory[2] == 0x1e
@@ -355,6 +359,20 @@ func TestAslOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.X = 0x01
                 p.execute(0x1e, []byte{0x01, 0x00, 0x0f})
+            },
+        "Lsr zero page":
+            func(p *CPU) { p.execute(0x46, []byte{0x02, 0x00, 0x3c}) },
+        "Lsr zero page X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x56, []byte{0x01, 0x00, 0x3c})
+            },
+        "Lsr absolute":
+            func(p *CPU) { p.execute(0x4e, []byte{0x02, 0x00, 0x3c}) },
+        "Lsr absolute X":
+            func(p *CPU) {
+                p.X = 0x01
+                p.execute(0x5e, []byte{0x01, 0x00, 0x3c})
             },
     }
 

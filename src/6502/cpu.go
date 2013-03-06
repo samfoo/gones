@@ -289,6 +289,25 @@ var opcodes = map[Opcode]Operation {
     0xbc: func(p *CPU) {
         p.Ldy(p.Address((*CPU).AbsoluteX))
     },
+    0x4a: func(p *CPU) {
+        p.Lsr(&p.A)
+    },
+    0x46: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPage)
+        p.Lsr(&p.Memory[address])
+    },
+    0x56: func(p *CPU) {
+        address := p.Address((*CPU).ZeroPageX)
+        p.Lsr(&p.Memory[address])
+    },
+    0x4e: func(p *CPU) {
+        address := p.Address((*CPU).Absolute)
+        p.Lsr(&p.Memory[address])
+    },
+    0x5e: func(p *CPU) {
+        address := p.Address((*CPU).AbsoluteX)
+        p.Lsr(&p.Memory[address])
+    },
 }
 
 func (p *CPU) Op(opcode Opcode) func() {
