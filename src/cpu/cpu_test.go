@@ -129,8 +129,8 @@ func TestReset(t *testing.T) {
 
     p.Reset()
 
-    if p.Flags != 0x34 {
-        t.Errorf("Flags not set to 0x34")
+    if p.Flags != 0x24 {
+        t.Errorf("Flags not set to 0x24")
     }
 
     if p.A != 0x00 {

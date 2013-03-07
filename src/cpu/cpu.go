@@ -1,6 +1,6 @@
 package cpu
 
-import "log"
+import "fmt"
 
 type Address uint16
 
@@ -67,17 +67,49 @@ func (p *CPU) Execute(op Op) {
 func (p *CPU) Step() {
     opcode := Opcode(p.Memory[p.PC])
 
-    log.Printf("%04x  %02x ", p.PC, opcode)
+    fmt.Printf("%4.04X  ", p.PC)
+
     p.PC++
 
     op := p.Operations()[opcode]
 
+    if op.Mode == nil {
+        fmt.Printf("%-9.02X %-32s", opcode, op.Name)
+    } else {
+        fmt.Printf("%-2.02X ", opcode)
+    }
+
     switch op.Mode {
         case Immediate, ZeroPage, ZeroPageX, IndexedIndirect, IndirectIndexed, Relative:
-            log.Printf("%02x        ", p.PC)
+            fmt.Printf("%-6.02X ", p.Memory[p.PC])
         case Absolute, AbsoluteX, AbsoluteY, Indirect:
-            log.Printf("%02x %02x   ", p.PC, p.PC+1)
+            fmt.Printf("%02X %-3.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
     }
+
+    switch op.Mode {
+        case Immediate:
+            fmt.Printf("%s #$%-26.02X", op.Name, p.Memory[p.PC])
+        case ZeroPage:
+            fmt.Printf("%s $%-27.02X", op.Name, p.Memory[p.PC])
+        case ZeroPageX:
+            fmt.Printf("%s $%-24.02X,X", op.Name, p.Memory[p.PC])
+        case ZeroPageY:
+            fmt.Printf("%s $%-24.02X,Y", op.Name, p.Memory[p.PC])
+        case Absolute, Indirect:
+            fmt.Printf("%s $%-27.04X", op.Name, p.absolute())
+        case AbsoluteX:
+            fmt.Printf("%s $%-22.04X,X", op.Name, p.absolute())
+        case AbsoluteY:
+            fmt.Printf("%s $%-22.04X,Y", op.Name, p.absolute())
+        case IndexedIndirect:
+            fmt.Printf("%s ($%02X,X)", op.Name, p.Memory[p.PC])
+        case IndirectIndexed:
+            fmt.Printf("%s ($%02X),Y", op.Name, p.Memory[p.PC])
+        case Relative:
+            fmt.Printf("%s $%-27.04X", op.Name, p.PC+Address(p.Memory[p.PC])+1)
+    }
+
+    fmt.Printf("A:%02X X:%02X Y:%02X P:%02X SP:%02X\n", p.A, p.X, p.Y, p.Flags, p.SP)
 
     p.Execute(op)
 }
@@ -243,7 +275,7 @@ func (p *CPU) Operations() map[Opcode]Op {
 }
 
 func (p *CPU) Reset() {
-    p.Flags = 0x34
+    p.Flags = 0x24
     p.A, p.X, p.Y = 0x00, 0x00, 0x00
     p.SP = 0xfd
 }
