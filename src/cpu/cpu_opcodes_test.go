@@ -37,7 +37,7 @@ func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
         p.Memory[i] = arguments[i]
     }
 
-    p.Op(op)()
+    p.Execute(p.Operations()[op])
 
     return p
 }
