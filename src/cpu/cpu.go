@@ -394,10 +394,14 @@ func (p *CPU) setNegativeFlag(value bool) {
 func (p *CPU) setNegativeAndZeroFlags(value byte) {
     if value & 0x80 == 0x80 {
         p.setNegativeFlag(true)
+    } else {
+        p.setNegativeFlag(false)
     }
 
     if value == 0x00 {
         p.setZeroFlag(true)
+    } else {
+        p.setZeroFlag(false)
     }
 }
 
@@ -530,14 +534,20 @@ func (p *CPU) Bit(location Address) {
 
     if result == 0x00 {
         p.setZeroFlag(true)
+    } else {
+        p.setZeroFlag(false)
     }
 
     if p.Memory[location] & 0x40 == 0x40 {
         p.setOverflowFlag(true)
+    } else {
+        p.setOverflowFlag(false)
     }
 
     if p.Memory[location] & 0x80 == 0x80 {
         p.setNegativeFlag(true)
+    } else {
+        p.setNegativeFlag(false)
     }
 }
 

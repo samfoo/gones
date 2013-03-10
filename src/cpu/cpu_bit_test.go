@@ -15,7 +15,14 @@ func TestBitSetsZeroFlag(t *testing.T) {
 
     if !p.Zero() {
         t.Errorf("Zero flag should be set when result is 0x00 (flags: %08b)", p.Flags)
-        t.FailNow()
+    }
+
+    p = new(CPU)
+    p.setZeroFlag(true)
+
+    p.bitTest(0x40, 0xff)
+    if p.Zero() {
+        t.Errorf("Zero flag should be unset when result is not 0x00")
     }
 }
 
