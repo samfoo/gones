@@ -68,3 +68,14 @@ func TestAslCarryFlagSet(t *testing.T) {
         t.FailNow()
     }
 }
+
+func TestAslCarryFlagUnset(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.setCarryFlag(true)
+    p.aslAccumulator(0x40)
+
+    if p.Carry() {
+        t.Errorf("Carry flag should be unset when shift fits")
+    }
+}

@@ -13,9 +13,9 @@ func TestSbcNoOverflow(t *testing.T) {
 
     p.sbc(0x01, 0x01)
 
-    if p.A != 0x00 {
+    if p.A != 0xff {
         t.Errorf("Sbc didn't subtract correctly")
-        t.Errorf("Expected %#02x, got %#02x", 0x00, p.A)
+        t.Errorf("Expected %#02x, got %#02x", 0xff, p.A)
     }
 }
 
@@ -31,6 +31,7 @@ func TestSbcPositiveFromNegativeOverflowSetsOverflowFlag(t *testing.T) {
 
 func TestSbcNegativeFromPositiveOverflowSetsOverflowFlag(t *testing.T) {
     var p *CPU = new(CPU)
+    p.setCarryFlag(true)
 
     p.sbc(0x00, 0x80)
 
@@ -39,19 +40,52 @@ func TestSbcNegativeFromPositiveOverflowSetsOverflowFlag(t *testing.T) {
     }
 }
 
+func TestSbcUnsetsOverflowFlagWhenNoOverflow(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.setOverflowFlag(true)
+    p.sbc(0x01, 0x00)
+
+    if p.Overflow() {
+        t.Errorf("Overflow flag set when it should have been unset")
+    }
+}
+
 func TestSbcUnsignedOverflowSetsCarryFlag(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.sbc(0x00, 0x01)
+    p.sbc(0x10, 0x01)
 
     if !p.Carry() {
         t.Errorf("Carry flag not set on unsigned subtraction overflow")
     }
 }
 
-func TestSbcWithCarryAlreadySetSubtracts1(t *testing.T) {
+func TestSbcUnsetsCarryFlagWhenNoCarry(t *testing.T) {
     var p *CPU = new(CPU)
-    p.Flags |= 0x01
+
+    p.setCarryFlag(true)
+    p.sbc(0x00, 0x01)
+
+    if p.Carry() {
+        t.Errorf("Carry flag not unset when it should have been")
+    }
+}
+
+func TestSbcWithCarryAlreadySetDoesNotSubtract1(t *testing.T) {
+    var p *CPU = new(CPU)
+    p.setCarryFlag(true)
+    p.sbc(0x01, 0x00)
+
+    if p.A != 0x01 {
+        t.Errorf("Carry flag didn't affect subtraction properly")
+        t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
+    }
+}
+
+func TestSbcWithCarryUnsetSubtracts1(t *testing.T) {
+    var p *CPU = new(CPU)
+    p.setCarryFlag(false)
     p.sbc(0x01, 0x00)
 
     if p.A != 0x00 {
@@ -72,6 +106,7 @@ func TestSbcSetsNegative(t *testing.T) {
 
 func TestSbcSetsZero(t *testing.T) {
     var p *CPU = new(CPU)
+    p.setCarryFlag(true)
 
     p.sbc(0x01, 0x01)
 

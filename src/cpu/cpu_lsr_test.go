@@ -57,3 +57,14 @@ func TestLsrCarryFlagSet(t *testing.T) {
         t.FailNow()
     }
 }
+
+func TestLsrCarryFlagUnset(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.setCarryFlag(true)
+    p.lsrAccumulator(0x02)
+
+    if p.Carry() {
+        t.Errorf("Carry flag should be unset when shift fits")
+    }
+}

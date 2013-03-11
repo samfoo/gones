@@ -854,45 +854,53 @@ func TestAddAndSubOpcodes(t *testing.T) {
             },
         "Sbc immediate":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.execute(0xe9, []byte{0x11})
             },
         "Sbc zero page":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.execute(0xe5, []byte{0x01, 0x11})
             },
         "Sbc zero page X":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.X = 0x01
                 p.execute(0xf5, []byte{0x01, 0x00, 0x11})
             },
         "Sbc absolute":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.execute(0xed, []byte{0x02, 0x00, 0x11})
             },
         "Sbc absolute X":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.X = 0x02
                 p.execute(0xfd, []byte{0x00, 0x00, 0x11})
             },
         "Sbc absolute Y":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.Y = 0x02
                 p.execute(0xf9, []byte{0x00, 0x00, 0x11})
             },
         "Sbc indexed indirect":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.X = 0x01
                 p.execute(0xe1, []byte{0x00, 0x03, 0x00, 0x11})
             },
         "Sbc indirect indexed":
             func(p *CPU) {
+                p.setCarryFlag(true)
                 p.A = 0x22
                 p.Y = 0x01
                 p.execute(0xf1, []byte{0x01, 0x00, 0x11})

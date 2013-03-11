@@ -15,9 +15,9 @@ func TestRtiStack(t *testing.T) {
 
     p.Rti()
 
-    if p.Flags != 0x10 {
+    if p.Flags != 0x20 {
         t.Errorf("Flags were not pulled properly from the stack")
-        t.Errorf("Expected %#02x, got %#02x", 0x10, p.Flags)
+        t.Errorf("Expected %#02x, got %#02x", 0x20, p.Flags)
     }
 
     if p.PC != 0xbef0 {

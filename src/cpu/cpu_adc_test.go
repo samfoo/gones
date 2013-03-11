@@ -14,7 +14,12 @@ func TestZeroFlagSet(t *testing.T) {
     p.adc(0x00, 0x00)
 
     if !p.Zero() {
-        t.Errorf("Zero flag should be set when result is 0x00 (flags: %08b)", p.Flags)
+        t.Errorf("Zero flag should be set when result is 0x00")
+    }
+
+    p.adc(0x01, 0x00)
+    if p.Zero() {
+        t.Errorf("Zero flag should be unset when result isn't zero")
     }
 }
 
@@ -51,6 +56,7 @@ func TestAdcOverflow(t *testing.T) {
 func TestNoUnsignedOverflowUnsetsCarryFlag(t *testing.T) {
     var p *CPU = new(CPU)
 
+    p.setCarryFlag(true)
     p.adc(0x00, 0x01)
 
     if p.Carry() {
@@ -109,4 +115,10 @@ func TestSignedNegativeOverflowSetsOverflowFlag(t *testing.T) {
     if !p.Overflow() {
         t.Errorf("Overflow flag not set when it should be (flags: %08b)", p.Flags)
     }
+
+    p.adc(0x00, 0x80)
+    if p.Overflow() {
+        t.Errorf("Overflow flag set when it should have been unset")
+    }
 }
+

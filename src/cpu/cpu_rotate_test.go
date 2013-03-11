@@ -20,6 +20,18 @@ func rol(value byte) (*CPU) {
     return p
 }
 
+func TestRorWithCarrySetBefore(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.setCarryFlag(true)
+    p.A = 0x00
+    p.Ror(&p.A)
+
+    if p.A != 0x80 {
+        t.Errorf("Rotating right with carry set should have set bit 7 to 1")
+    }
+}
+
 func TestRotatingWithoutCarry(t *testing.T) {
     var p = ror(0x40)
 
@@ -39,16 +51,24 @@ func TestRotatingWithoutCarry(t *testing.T) {
 func TestRotatingWithCarry(t *testing.T) {
     var p = ror(0x01)
 
-    if p.A != 0x80 {
+    if p.A != 0x00 {
         t.Errorf("Rotating right with a carry failed")
-        t.Errorf("Expected %#02x, got %#02x", 0x80, p.A)
+        t.Errorf("Expected %#02x, got %#02x", 0x00, p.A)
+    }
+
+    if !p.Carry() {
+        t.Errorf("Carry flag not set when rotating right")
     }
 
     p = rol(0x80)
 
-    if p.A != 0x01 {
+    if p.A != 0x00 {
         t.Errorf("Rotating leftwith a carry failed")
         t.Errorf("Expected %#02x, got %#02x", 0x01, p.A)
+    }
+
+    if !p.Carry() {
+        t.Errorf("Carry flag not set when rotating left")
     }
 }
 
@@ -71,5 +91,4 @@ func TestRotatingSetsNegative(t *testing.T) {
     }
 
     validate(rol(0x40))
-    validate(ror(0x01))
 }

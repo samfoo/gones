@@ -73,40 +73,65 @@ func (p *CPU) Step() {
 
     op := p.Operations()[opcode]
 
-    if op.Mode == nil {
-        fmt.Printf("%-9.02X %-32s", opcode, op.Name)
-    } else {
-        fmt.Printf("%-2.02X ", opcode)
-    }
+    fmt.Printf("%-2.02X ", opcode)
 
     switch op.Mode {
         case Immediate, ZeroPage, ZeroPageX, IndexedIndirect, IndirectIndexed, Relative:
             fmt.Printf("%-6.02X ", p.Memory[p.PC])
         case Absolute, AbsoluteX, AbsoluteY, Indirect:
             fmt.Printf("%02X %-3.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
+        case nil:
+            fmt.Printf("%-7s", " ")
     }
+
+    fmt.Printf("%s ", op.Name)
 
     switch op.Mode {
         case Immediate:
-            fmt.Printf("%s #$%-26.02X", op.Name, p.Memory[p.PC])
+            fmt.Printf("#$%-26.02X", p.Memory[p.PC])
         case ZeroPage:
-            fmt.Printf("%s $%-27.02X", op.Name, p.Memory[p.PC])
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("$%02X = %-22.02X", p.Memory[p.PC], p.Memory[location])
         case ZeroPageX:
-            fmt.Printf("%s $%-24.02X,X", op.Name, p.Memory[p.PC])
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("$%02X,X @ %02X = %-16.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
         case ZeroPageY:
-            fmt.Printf("%s $%-24.02X,Y", op.Name, p.Memory[p.PC])
-        case Absolute, Indirect:
-            fmt.Printf("%s $%-27.04X", op.Name, p.absolute())
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("$%02X,Y @ %02X = %-16.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
+        case Absolute:
+            if op.Name == "JMP" || op.Name == "JSR" {
+                fmt.Printf("$%-27.04X", p.absolute())
+            } else {
+                fmt.Printf("$%04X = %-20.02X", p.absolute(), p.Memory[p.absolute()])
+            }
+        case Indirect:
+            location := p.Memory[p.absolute()]
+            high := p.Memory[location+1]
+            low := p.Memory[location]
+            indirectLocation := (Address(high) << 8) + Address(low)
+
+            fmt.Printf("($%04X) = %-19.04X", p.absolute(), indirectLocation)
         case AbsoluteX:
-            fmt.Printf("%s $%-22.04X,X", op.Name, p.absolute())
+            fmt.Printf("$%04X,X @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.X), p.Memory[p.absolute()+Address(p.X)])
         case AbsoluteY:
-            fmt.Printf("%s $%-22.04X,Y", op.Name, p.absolute())
+            fmt.Printf("$%04Y,Y @ %04Y = %-11.02Y", p.absolute(), p.absolute() + Address(p.Y), p.Memory[p.absolute()+Address(p.Y)])
         case IndexedIndirect:
-            fmt.Printf("%s ($%02X,X)", op.Name, p.Memory[p.PC])
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("($%02X,X) @ %02X = %04X = %-6.02X", p.Memory[p.PC], p.Memory[p.PC] + p.X, location, p.Memory[location])
         case IndirectIndexed:
-            fmt.Printf("%s ($%02X),Y", op.Name, p.Memory[p.PC])
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("($%02X),Y = %04X @ %04X = %02X", p.Memory[p.PC], location - Address(p.Y), location, p.Memory[location])
         case Relative:
-            fmt.Printf("%s $%-27.04X", op.Name, p.PC+Address(p.Memory[p.PC])+1)
+            fmt.Printf("$%-27.04X", p.PC+Address(p.Memory[p.PC])+1)
+        case nil:
+            switch op.Method.(type) {
+                case func(*CPU, *byte):
+                    // Accumulator addressing.
+                    fmt.Printf("%-28s", "A")
+                default:
+                    // No addressing
+                    fmt.Printf("%-28s", " ")
+            }
     }
 
     fmt.Printf("A:%02X X:%02X Y:%02X P:%02X SP:%02X\n", p.A, p.X, p.Y, p.Flags, p.SP)
@@ -475,10 +500,14 @@ func (p *CPU) Adc(location Address) {
 
     if p.A < old {
         p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
     }
 
     if addOverflowed(old, other, p.A) {
         p.setOverflowFlag(true)
+    } else {
+        p.setOverflowFlag(false)
     }
 
     p.setNegativeAndZeroFlags(p.A)
@@ -490,16 +519,20 @@ func (p *CPU) Sbc(location Address) {
 
     p.A -= other
 
-    if p.Carry() {
+    if !p.Carry() {
         p.A -= 0x01
     }
 
     if p.A > old {
+        p.setCarryFlag(false)
+    } else {
         p.setCarryFlag(true)
     }
 
     if subtractOverflowed(old, other, p.A) {
         p.setOverflowFlag(true)
+    } else {
+        p.setOverflowFlag(false)
     }
 
     p.setNegativeAndZeroFlags(p.A)
@@ -522,6 +555,8 @@ func (p *CPU) Ora(location Address) {
 func (p *CPU) Asl(memory *byte) {
     if *memory & 0x80 == 0x80 {
         p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
     }
 
     *memory = *memory << 1
@@ -572,6 +607,8 @@ func (p *CPU) compare(register byte, value byte) {
 
     if register >= value {
         p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
     }
 
     p.setNegativeAndZeroFlags(result)
@@ -652,6 +689,8 @@ func (p *CPU) Ldy(location Address) {
 func (p *CPU) Lsr(memory *byte) {
     if *memory & 0x01 == 0x01 {
         p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
     }
 
     *memory = *memory >> 1
@@ -690,10 +729,11 @@ func (p *CPU) Pla() {
 
 func (p *CPU) Plp() {
     p.pull(&p.Flags)
+    p.Flags = (p.Flags | 0x30) - 0x10
 }
 
 func (p *CPU) Rol(memory *byte) {
-    p.setCarryFlag((*memory & 0x80) == 0x80)
+    carried := (*memory & 0x80) == 0x80
 
     *memory = *memory << 1
 
@@ -701,16 +741,28 @@ func (p *CPU) Rol(memory *byte) {
         *memory |= 0x01
     }
 
+    if carried {
+        p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
+    }
+
     p.setNegativeAndZeroFlags(*memory)
 }
 
 func (p *CPU) Ror(memory *byte) {
-    p.setCarryFlag((*memory & 0x01) == 0x01)
+    carried := (*memory & 0x01) == 0x01
 
     *memory = *memory >> 1
 
     if p.Carry() {
         *memory |= 0x80
+    }
+
+    if carried {
+        p.setCarryFlag(true)
+    } else {
+        p.setCarryFlag(false)
     }
 
     p.setNegativeAndZeroFlags(*memory)
@@ -846,6 +898,7 @@ func (p *CPU) Jsr(location Address) {
 
 func (p *CPU) Rti() {
     p.pull(&p.Flags)
+    p.Flags = (p.Flags | 0x30) - 0x10
 
     var low byte = 0x00
     p.pull(&low)

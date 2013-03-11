@@ -22,12 +22,12 @@ func php(value byte) (*CPU) {
     return p
 }
 
-func TestPhpAlwaysSetsBreakFlag(t *testing.T) {
-    var p = php(0x00)
+func TestPhpNeverSetsBreakFlag(t *testing.T) {
+    var p = php(0xff)
     p.Plp()
 
-    if p.Flags & 0x10 != 0x10 {
-        t.Errorf("Php didn't set the break flag when it should have")
+    if p.Flags != 0xef {
+        t.Errorf("Php didn't unset the break flag when it should have")
     }
 }
 
@@ -113,8 +113,8 @@ func TestPullingValues(t *testing.T) {
         t.Errorf("Pulling didn't increment the stack pointer correctly")
     }
 
-    if p.Flags != 0xfa {
+    if p.Flags != 0xea {
         t.Errorf("Failed to pull from the stack into flags.")
-        t.Errorf("Expected %#02x, got %#02x", 0xbe, p.Flags)
+        t.Errorf("Expected %#02x, got %#02x", 0xea, p.Flags)
     }
 }
