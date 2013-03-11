@@ -193,7 +193,7 @@ func TestCompareOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.A = 0x11
                 p.Y = 0x01
-                p.execute(0xd1, []byte{0x01, 0x00, 0x11})
+                p.execute(0xd1, []byte{0x01, 0x02, 0x00, 0x11})
             },
         "Cpx immediate":
             func(p *CPU) {
@@ -512,7 +512,7 @@ func TestStoreOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.A = 0x0f
                 p.Y = 0x01
-                p.execute(0x91, []byte{0x03})
+                p.execute(0x91, []byte{0x01, 0x03, 0x00})
             },
         "Stx zero page":
             func(p *CPU) {
@@ -640,7 +640,7 @@ func TestLdaOpcodes(t *testing.T) {
         "Lda indirect indexed":
             func(p *CPU) {
                 p.Y = 0x01
-                p.execute(0xb1, []byte{0x01, 0x00, 0x0f})
+                p.execute(0xb1, []byte{0x01, 0x02, 0x00, 0x0f})
             },
     }
 
@@ -696,7 +696,7 @@ func TestOraOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.A = 0x41
                 p.Y = 0x01
-                p.execute(0x11, []byte{0x01, 0x00, 0x0f})
+                p.execute(0x11, []byte{0x01, 0x02, 0x00, 0x0f})
             },
     }
 
@@ -752,7 +752,7 @@ func TestEorOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.A = 0x41
                 p.Y = 0x01
-                p.execute(0x51, []byte{0x01, 0x00, 0x0f})
+                p.execute(0x51, []byte{0x01, 0x02, 0x00, 0x0f})
             },
     }
 
@@ -808,7 +808,7 @@ func TestAndOpcodes(t *testing.T) {
             func(p *CPU) {
                 p.A = 0x41
                 p.Y = 0x01
-                p.execute(0x31, []byte{0x01, 0x00, 0x0f})
+                p.execute(0x31, []byte{0x01, 0x02, 0x00, 0x0f})
             },
     }
 
@@ -850,7 +850,7 @@ func TestAddAndSubOpcodes(t *testing.T) {
         "Adc indirect indexed":
             func(p *CPU) {
                 p.Y = 0x01
-                p.execute(0x71, []byte{0x01, 0x00, 0x11})
+                p.execute(0x71, []byte{0x01, 0x02, 0x00, 0x11})
             },
         "Sbc immediate":
             func(p *CPU) {
@@ -903,7 +903,7 @@ func TestAddAndSubOpcodes(t *testing.T) {
                 p.setCarryFlag(true)
                 p.A = 0x22
                 p.Y = 0x01
-                p.execute(0xf1, []byte{0x01, 0x00, 0x11})
+                p.execute(0xf1, []byte{0x01, 0x02, 0x00, 0x11})
             },
     }
 

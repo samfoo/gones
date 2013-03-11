@@ -362,8 +362,14 @@ func (p *CPU) AbsoluteY() (Address, int) {
 func (p *CPU) Indirect() (Address, int) {
     location := p.absolute()
 
-    high := p.Memory[location+1]
     low := p.Memory[location]
+
+    var high byte
+    if location & 0x00ff == 0x00ff {
+        high = p.Memory[location & 0xff00]
+    } else {
+        high = p.Memory[location+1]
+    }
 
     return (Address(high) << 8) + Address(low), 2
 }
@@ -377,11 +383,22 @@ func (p *CPU) IndexedIndirect() (Address, int) {
     return (Address(high) << 8) + Address(low), 1
 }
 
-func (p *CPU) IndirectIndexed() (Address, int) {
-    high := p.Memory[p.PC+1]
-    low := p.Memory[p.PC]
+func (p *CPU) indirectIndexed() (Address, Address) {
+    indirect := Address(p.Memory[p.PC])
 
-    return (Address(high) << 8) + Address(low) + Address(p.Y), 1
+    high := p.Memory[indirect+1]
+    low := p.Memory[indirect]
+
+    return indirect, (Address(high) << 8) + Address(low) + Address(p.Y)
+}
+
+func (p *CPU) IndirectIndexed() (Address, int) {
+    indirect := p.Memory[p.PC]
+
+    high := p.Memory[Address(indirect+1)]
+    low := p.Memory[Address(indirect)]
+
+    return ((Address(high) << 8) + Address(low)) + Address(p.Y), 1
 }
 
 func (p *CPU) setFlag(mask byte, value bool) {

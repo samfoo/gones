@@ -8,6 +8,42 @@ func (p *CPU) address(mode AddressMode) Address {
     return location
 }
 
+func TestIndirectReference(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.Memory[0] = 0x02
+    p.Memory[1] = 0x00
+    p.Memory[2] = 0xef
+    p.Memory[3] = 0xbe
+
+    p.PC = 0x00
+
+    location, _ := p.Indirect()
+
+    if location != 0xbeef {
+        t.Errorf("Indirect reference pointed to the wrong location")
+        t.Errorf("Expected %#04x, got %#04x", 0xbeef, location)
+    }
+}
+
+func TestIndirectReferenceOnPageBoundary(t *testing.T) {
+    var p *CPU = new(CPU)
+
+    p.Memory[0] = 0xbe
+    p.Memory[1] = 0xff
+    p.Memory[2] = 0x00
+    p.Memory[0x00ff] = 0xef
+
+    p.PC = 0x01
+
+    location, _ := p.Indirect()
+
+    if location != 0xbeef {
+        t.Errorf("Indirect reference failed to emulate the notorious page boundary indirect bug")
+        t.Errorf("Expected %#04x, got %#04x", 0xbeef, location)
+    }
+}
+
 func TestImmediateReference(t *testing.T) {
     var p *CPU = new(CPU)
 
@@ -108,19 +144,24 @@ func TestIndirectIndexed(t *testing.T) {
     p.PC = 0x00
     p.Y = 0x00
 
-    p.Memory[0] = 0xef
-    p.Memory[1] = 0xbe
+    p.Memory[0] = 0x01
+    p.Memory[1] = 0xef
+    p.Memory[2] = 0xbe
 
-    if p.address((*CPU).IndirectIndexed) != 0xbeef {
+    var location, _ = p.IndirectIndexed()
+
+    if location != 0xbeef {
         t.Errorf("Indirect indexed memory reference pointed to the wrong location")
-        t.Errorf("Expected %#04x, got %#04x", 0xbeef, p.address((*CPU).IndirectIndexed))
+        t.Errorf("Expected %#04x, got %#04x", 0xbeef, location)
     }
 
     p.Y = 0x01
 
-    if p.address((*CPU).IndirectIndexed) != 0xbef0 {
+    location, _ = p.IndirectIndexed()
+
+    if location != 0xbef0 {
         t.Errorf("Indirect indexed memory reference pointed to the wrong location")
-        t.Errorf("Expected %#04x, got %#04x", 0xbef0, p.address((*CPU).IndirectIndexed))
+        t.Errorf("Expected %#04x, got %#04x", 0xbef0, location)
     }
 }
 
