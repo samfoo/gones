@@ -76,7 +76,7 @@ func (p *CPU) Step() {
     fmt.Printf("%-2.02X ", opcode)
 
     switch op.Mode {
-        case Immediate, ZeroPage, ZeroPageX, IndexedIndirect, IndirectIndexed, Relative:
+        case Immediate, ZeroPage, ZeroPageX, ZeroPageY, IndexedIndirect, IndirectIndexed, Relative:
             fmt.Printf("%-6.02X ", p.Memory[p.PC])
         case Absolute, AbsoluteX, AbsoluteY, Indirect:
             fmt.Printf("%02X %-3.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
@@ -94,10 +94,10 @@ func (p *CPU) Step() {
             fmt.Printf("$%02X = %-22.02X", p.Memory[p.PC], p.Memory[location])
         case ZeroPageX:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("$%02X,X @ %02X = %-16.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
+            fmt.Printf("$%02X,X @ %02X = %-15.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
         case ZeroPageY:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("$%02X,Y @ %02X = %-16.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
+            fmt.Printf("$%02X,Y @ %02X = %-15.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
         case Absolute:
             if op.Name == "JMP" || op.Name == "JSR" {
                 fmt.Printf("$%-27.04X", p.absolute())
@@ -105,22 +105,22 @@ func (p *CPU) Step() {
                 fmt.Printf("$%04X = %-20.02X", p.absolute(), p.Memory[p.absolute()])
             }
         case Indirect:
-            location := p.Memory[p.absolute()]
+            location := p.absolute()
             high := p.Memory[location+1]
             low := p.Memory[location]
             indirectLocation := (Address(high) << 8) + Address(low)
 
-            fmt.Printf("($%04X) = %-19.04X", p.absolute(), indirectLocation)
+            fmt.Printf("($%04X) = %-18.04X", p.absolute(), indirectLocation)
         case AbsoluteX:
             fmt.Printf("$%04X,X @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.X), p.Memory[p.absolute()+Address(p.X)])
         case AbsoluteY:
-            fmt.Printf("$%04Y,Y @ %04Y = %-11.02Y", p.absolute(), p.absolute() + Address(p.Y), p.Memory[p.absolute()+Address(p.Y)])
+            fmt.Printf("$%04X,Y @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.Y), p.Memory[p.absolute()+Address(p.Y)])
         case IndexedIndirect:
             location, _ := addressing[op.Mode.(int)](p)
             fmt.Printf("($%02X,X) @ %02X = %04X = %-6.02X", p.Memory[p.PC], p.Memory[p.PC] + p.X, location, p.Memory[location])
         case IndirectIndexed:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("($%02X),Y = %04X @ %04X = %02X", p.Memory[p.PC], location - Address(p.Y), location, p.Memory[location])
+            fmt.Printf("($%02X),Y = %04X @ %04X = %-4.02X", p.Memory[p.PC], location - Address(p.Y), location, p.Memory[location])
         case Relative:
             fmt.Printf("$%-27.04X", p.PC+Address(p.Memory[p.PC])+1)
         case nil:
