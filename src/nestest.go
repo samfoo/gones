@@ -25,7 +25,7 @@ func main() {
 
     proc.PC = 0xc000
 
-    for i:=0; i < 100; i++ {
+    for i:=0; i < 9000; i++ {
         proc.Step()
     }
 }

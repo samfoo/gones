@@ -77,14 +77,14 @@ func (p *CPU) Step() {
 
     switch op.Mode {
         case Immediate, ZeroPage, ZeroPageX, ZeroPageY, IndexedIndirect, IndirectIndexed, Relative:
-            fmt.Printf("%-6.02X ", p.Memory[p.PC])
+            fmt.Printf("%-5.02X ", p.Memory[p.PC])
         case Absolute, AbsoluteX, AbsoluteY, Indirect:
-            fmt.Printf("%02X %-3.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
+            fmt.Printf("%02X %-2.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
         case nil:
-            fmt.Printf("%-7s", " ")
+            fmt.Printf("%-6s", " ")
     }
 
-    fmt.Printf("%s ", op.Name)
+    fmt.Printf("%4s ", op.Name)
 
     switch op.Mode {
         case Immediate:
@@ -122,7 +122,8 @@ func (p *CPU) Step() {
             location, _ := addressing[op.Mode.(int)](p)
             fmt.Printf("($%02X),Y = %04X @ %04X = %-4.02X", p.Memory[p.PC], location - Address(p.Y), location, p.Memory[location])
         case Relative:
-            fmt.Printf("$%-27.04X", p.PC+Address(p.Memory[p.PC])+1)
+            location, _ := addressing[op.Mode.(int)](p)
+            fmt.Printf("$%-27.04X", location)
         case nil:
             switch op.Method.(type) {
                 case func(*CPU, *byte):
@@ -158,11 +159,22 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x39: Op{"AND", (*CPU).And, AbsoluteY},
             0x21: Op{"AND", (*CPU).And, IndexedIndirect},
             0x31: Op{"AND", (*CPU).And, IndirectIndexed},
+            0x87: Op{"*SAX", (*CPU).Sax, ZeroPage},
+            0x97: Op{"*SAX", (*CPU).Sax, ZeroPageY},
+            0x83: Op{"*SAX", (*CPU).Sax, IndexedIndirect},
+            0x8f: Op{"*SAX", (*CPU).Sax, Absolute},
             0x0a: Op{"ASL", (*CPU).Asl, nil},
             0x06: Op{"ASL", (*CPU).Asl, ZeroPage},
             0x16: Op{"ASL", (*CPU).Asl, ZeroPageX},
             0x0e: Op{"ASL", (*CPU).Asl, Absolute},
             0x1e: Op{"ASL", (*CPU).Asl, AbsoluteX},
+            0x07: Op{"*SLO", (*CPU).Slo, ZeroPage},
+            0x17: Op{"*SLO", (*CPU).Slo, ZeroPageX},
+            0x0f: Op{"*SLO", (*CPU).Slo, Absolute},
+            0x1f: Op{"*SLO", (*CPU).Slo, AbsoluteX},
+            0x1b: Op{"*SLO", (*CPU).Slo, AbsoluteY},
+            0x03: Op{"*SLO", (*CPU).Slo, IndexedIndirect},
+            0x13: Op{"*SLO", (*CPU).Slo, IndirectIndexed},
             0x90: Op{"BCC", (*CPU).Bcc, Relative},
             0xb0: Op{"BCS", (*CPU).Bcs, Relative},
             0xf0: Op{"BEQ", (*CPU).Beq, Relative},
@@ -196,12 +208,26 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xd6: Op{"DEC", (*CPU).Dec, ZeroPageX},
             0xce: Op{"DEC", (*CPU).Dec, Absolute},
             0xde: Op{"DEC", (*CPU).Dec, AbsoluteX},
+            0xc7: Op{"*DCP", (*CPU).Dcp, ZeroPage},
+            0xd7: Op{"*DCP", (*CPU).Dcp, ZeroPageX},
+            0xcf: Op{"*DCP", (*CPU).Dcp, Absolute},
+            0xdf: Op{"*DCP", (*CPU).Dcp, AbsoluteX},
+            0xdb: Op{"*DCP", (*CPU).Dcp, AbsoluteY},
+            0xc3: Op{"*DCP", (*CPU).Dcp, IndexedIndirect},
+            0xd3: Op{"*DCP", (*CPU).Dcp, IndirectIndexed},
             0xca: Op{"DEX", (*CPU).Dex, nil},
             0x88: Op{"DEY", (*CPU).Dey, nil},
             0xe6: Op{"INC", (*CPU).Inc, ZeroPage},
             0xf6: Op{"INC", (*CPU).Inc, ZeroPageX},
             0xee: Op{"INC", (*CPU).Inc, Absolute},
             0xfe: Op{"INC", (*CPU).Inc, AbsoluteX},
+            0xe7: Op{"*ISB", (*CPU).Isb, ZeroPage},
+            0xf7: Op{"*ISB", (*CPU).Isb, ZeroPageX},
+            0xef: Op{"*ISB", (*CPU).Isb, Absolute},
+            0xff: Op{"*ISB", (*CPU).Isb, AbsoluteX},
+            0xfb: Op{"*ISB", (*CPU).Isb, AbsoluteY},
+            0xe3: Op{"*ISB", (*CPU).Isb, IndexedIndirect},
+            0xf3: Op{"*ISB", (*CPU).Isb, IndirectIndexed},
             0xe8: Op{"INX", (*CPU).Inx, nil},
             0xc8: Op{"INY", (*CPU).Iny, nil},
             0x49: Op{"EOR", (*CPU).Eor, Immediate},
@@ -233,12 +259,52 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xb4: Op{"LDY", (*CPU).Ldy, ZeroPageX},
             0xac: Op{"LDY", (*CPU).Ldy, Absolute},
             0xbc: Op{"LDY", (*CPU).Ldy, AbsoluteX},
+            0xa7: Op{"*LAX", (*CPU).Lax, ZeroPage},
+            0xb7: Op{"*LAX", (*CPU).Lax, ZeroPageY},
+            0xaf: Op{"*LAX", (*CPU).Lax, Absolute},
+            0xbf: Op{"*LAX", (*CPU).Lax, AbsoluteY},
+            0xa3: Op{"*LAX", (*CPU).Lax, IndexedIndirect},
+            0xb3: Op{"*LAX", (*CPU).Lax, IndirectIndexed},
             0x4a: Op{"LSR", (*CPU).Lsr, nil},
             0x46: Op{"LSR", (*CPU).Lsr, ZeroPage},
             0x56: Op{"LSR", (*CPU).Lsr, ZeroPageX},
             0x4e: Op{"LSR", (*CPU).Lsr, Absolute},
             0x5e: Op{"LSR", (*CPU).Lsr, AbsoluteX},
+            0x47: Op{"*SRE", (*CPU).Sre, ZeroPage},
+            0x57: Op{"*SRE", (*CPU).Sre, ZeroPageX},
+            0x4f: Op{"*SRE", (*CPU).Sre, Absolute},
+            0x5f: Op{"*SRE", (*CPU).Sre, AbsoluteX},
+            0x5b: Op{"*SRE", (*CPU).Sre, AbsoluteY},
+            0x43: Op{"*SRE", (*CPU).Sre, IndexedIndirect},
+            0x53: Op{"*SRE", (*CPU).Sre, IndirectIndexed},
             0xea: Op{"NOP", (*CPU).Nop, nil},
+            0x04: Op{"*NOP", (*CPU)._Nop, ZeroPage},
+            0x14: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0x34: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0x44: Op{"*NOP", (*CPU)._Nop, ZeroPage},
+            0x54: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0x64: Op{"*NOP", (*CPU)._Nop, ZeroPage},
+            0x74: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0x80: Op{"*NOP", (*CPU)._Nop, Immediate},
+            0x82: Op{"*NOP", (*CPU)._Nop, Immediate},
+            0x89: Op{"*NOP", (*CPU)._Nop, Immediate},
+            0xc2: Op{"*NOP", (*CPU)._Nop, Immediate},
+            0xd4: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0xe2: Op{"*NOP", (*CPU)._Nop, Immediate},
+            0xf4: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
+            0x0c: Op{"*NOP", (*CPU)._Nop, Absolute},
+            0x1c: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0x3c: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0x5c: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0x7c: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0xdc: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0xfc: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
+            0x1a: Op{"*NOP", (*CPU).Nop, nil},
+            0x3a: Op{"*NOP", (*CPU).Nop, nil},
+            0x5a: Op{"*NOP", (*CPU).Nop, nil},
+            0x7a: Op{"*NOP", (*CPU).Nop, nil},
+            0xda: Op{"*NOP", (*CPU).Nop, nil},
+            0xfa: Op{"*NOP", (*CPU).Nop, nil},
             0x09: Op{"ORA", (*CPU).Ora, Immediate},
             0x05: Op{"ORA", (*CPU).Ora, ZeroPage},
             0x15: Op{"ORA", (*CPU).Ora, ZeroPageX},
@@ -256,11 +322,25 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x36: Op{"ROL", (*CPU).Rol, ZeroPageX},
             0x2e: Op{"ROL", (*CPU).Rol, Absolute},
             0x3e: Op{"ROL", (*CPU).Rol, AbsoluteX},
+            0x27: Op{"*RLA", (*CPU).Rla, ZeroPage},
+            0x37: Op{"*RLA", (*CPU).Rla, ZeroPageX},
+            0x2f: Op{"*RLA", (*CPU).Rla, Absolute},
+            0x3f: Op{"*RLA", (*CPU).Rla, AbsoluteX},
+            0x3b: Op{"*RLA", (*CPU).Rla, AbsoluteY},
+            0x23: Op{"*RLA", (*CPU).Rla, IndexedIndirect},
+            0x33: Op{"*RLA", (*CPU).Rla, IndirectIndexed},
             0x6a: Op{"ROR", (*CPU).Ror, nil},
             0x66: Op{"ROR", (*CPU).Ror, ZeroPage},
             0x76: Op{"ROR", (*CPU).Ror, ZeroPageX},
             0x6e: Op{"ROR", (*CPU).Ror, Absolute},
             0x7e: Op{"ROR", (*CPU).Ror, AbsoluteX},
+            0x67: Op{"*RRA", (*CPU).Rra, ZeroPage},
+            0x77: Op{"*RRA", (*CPU).Rra, ZeroPageX},
+            0x6f: Op{"*RRA", (*CPU).Rra, Absolute},
+            0x7f: Op{"*RRA", (*CPU).Rra, AbsoluteX},
+            0x7b: Op{"*RRA", (*CPU).Rra, AbsoluteY},
+            0x63: Op{"*RRA", (*CPU).Rra, IndexedIndirect},
+            0x73: Op{"*RRA", (*CPU).Rra, IndirectIndexed},
             0x40: Op{"RTI", (*CPU).Rti, nil},
             0x60: Op{"RTS", (*CPU).Rts, nil},
             0xe9: Op{"SBC", (*CPU).Sbc, Immediate},
@@ -271,6 +351,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xf9: Op{"SBC", (*CPU).Sbc, AbsoluteY},
             0xe1: Op{"SBC", (*CPU).Sbc, IndexedIndirect},
             0xf1: Op{"SBC", (*CPU).Sbc, IndirectIndexed},
+            0xeb: Op{"*SBC", (*CPU).Sbc, Immediate},
             0x38: Op{"SEC", (*CPU).Sec, nil},
             0xf8: Op{"SED", (*CPU).Sed, nil},
             0x78: Op{"SEI", (*CPU).Sei, nil},
@@ -315,7 +396,7 @@ func (p *CPU) Address(mode AddressMode) Address {
 
 func (p *CPU) Relative() (Address, int) {
     var offset = Address(p.Memory[p.PC])
-    if offset < 0x80 {
+    if offset < 0x0080 {
         offset += p.PC + 1
     } else {
         offset += (p.PC - 0x100) + 1
@@ -555,6 +636,10 @@ func (p *CPU) Sbc(location Address) {
     p.setNegativeAndZeroFlags(p.A)
 }
 
+func (p *CPU) Sax(location Address) {
+    p.Memory[location] = p.A & p.X
+}
+
 func (p *CPU) And(location Address) {
     other := p.Memory[location]
     p.A &= other
@@ -569,6 +654,11 @@ func (p *CPU) Ora(location Address) {
     p.setNegativeAndZeroFlags(p.A)
 }
 
+func (p *CPU) Slo(location Address) {
+    p.Asl(&p.Memory[location])
+    p.Ora(location)
+}
+
 func (p *CPU) Asl(memory *byte) {
     if *memory & 0x80 == 0x80 {
         p.setCarryFlag(true)
@@ -579,6 +669,24 @@ func (p *CPU) Asl(memory *byte) {
     *memory = *memory << 1
 
     p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Aac(location Address) {
+    p.A &= p.Memory[location]
+
+    if p.A == 0x00 {
+        p.setZeroFlag(true)
+    } else {
+        p.setZeroFlag(false)
+    }
+
+    if p.A & 0x80 == 0x80 {
+        p.setNegativeFlag(true)
+        p.setCarryFlag(true)
+    } else {
+        p.setNegativeFlag(false)
+        p.setCarryFlag(false)
+    }
 }
 
 func (p *CPU) Bit(location Address) {
@@ -649,6 +757,12 @@ func (p *CPU) decrement(memory *byte) {
     p.setNegativeAndZeroFlags(*memory)
 }
 
+func (p *CPU) Dcp(location Address) {
+    memory := &p.Memory[location]
+    *memory -= 1
+    p.compare(p.A, *memory)
+}
+
 func (p *CPU) Dec(location Address) {
     p.decrement(&p.Memory[location])
 }
@@ -673,6 +787,11 @@ func (p *CPU) increment(memory *byte) {
     p.setNegativeAndZeroFlags(*memory)
 }
 
+func (p *CPU) Isb(location Address) {
+    p.increment(&p.Memory[location])
+    p.Sbc(location)
+}
+
 func (p *CPU) Inc(location Address) {
     p.increment(&p.Memory[location])
 }
@@ -691,6 +810,11 @@ func (p *CPU) load(memory *byte, value byte) {
     p.setNegativeAndZeroFlags(*memory)
 }
 
+func (p *CPU) Lax(location Address) {
+    p.load(&p.A, p.Memory[location])
+    p.load(&p.X, p.Memory[location])
+}
+
 func (p *CPU) Lda(location Address) {
     p.load(&p.A, p.Memory[location])
 }
@@ -701,6 +825,11 @@ func (p *CPU) Ldx(location Address) {
 
 func (p *CPU) Ldy(location Address) {
     p.load(&p.Y, p.Memory[location])
+}
+
+func (p *CPU) Sre(location Address) {
+    p.Lsr(&p.Memory[location])
+    p.Eor(location)
 }
 
 func (p *CPU) Lsr(memory *byte) {
@@ -715,8 +844,9 @@ func (p *CPU) Lsr(memory *byte) {
     p.setNegativeAndZeroFlags(*memory)
 }
 
-func (p *CPU) Nop() {
-}
+func (p *CPU) _Nop(location Address) {}
+
+func (p *CPU) Nop() {}
 
 func (p *CPU) push(value byte) {
     p.Memory[0x0100 + Address(p.SP)] = value
@@ -749,6 +879,11 @@ func (p *CPU) Plp() {
     p.Flags = (p.Flags | 0x30) - 0x10
 }
 
+func (p *CPU) Rla(location Address) {
+    p.Rol(&p.Memory[location])
+    p.And(location)
+}
+
 func (p *CPU) Rol(memory *byte) {
     carried := (*memory & 0x80) == 0x80
 
@@ -765,6 +900,11 @@ func (p *CPU) Rol(memory *byte) {
     }
 
     p.setNegativeAndZeroFlags(*memory)
+}
+
+func (p *CPU) Rra(location Address) {
+    p.Ror(&p.Memory[location])
+    p.Adc(location)
 }
 
 func (p *CPU) Ror(memory *byte) {
