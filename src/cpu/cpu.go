@@ -7,7 +7,7 @@ type Address uint16
 type CPU struct {
     A, X, Y, SP, Flags byte
     PC Address
-    Memory [0x10000]byte
+    Memory RAM
     operations map[Opcode]Op
 }
 
@@ -32,6 +32,7 @@ const (
     AbsoluteY
     Indirect
     Relative
+    Accumulator
 )
 
 var addressing = map[int]AddressMode {
@@ -52,20 +53,13 @@ func (p *CPU) Execute(op Op) {
     switch m := op.Method.(type) {
         case func(*CPU, Address):
             m(p, p.Address(addressing[op.Mode.(int)]))
-        case func(*CPU, *byte):
-            if op.Mode == nil {
-                m(p, &p.A)
-            } else {
-                location := p.Address(addressing[op.Mode.(int)])
-                m(p, &p.Memory[location])
-            }
         case func(*CPU):
             m(p)
     }
 }
 
 func (p *CPU) Step() {
-    opcode := Opcode(p.Memory[p.PC])
+    opcode := Opcode(p.Memory.Read(p.PC))
 
     fmt.Printf("%4.04X  ", p.PC)
 
@@ -77,10 +71,10 @@ func (p *CPU) Step() {
 
     switch op.Mode {
         case Immediate, ZeroPage, ZeroPageX, ZeroPageY, IndexedIndirect, IndirectIndexed, Relative:
-            fmt.Printf("%-5.02X ", p.Memory[p.PC])
+            fmt.Printf("%-5.02X ", p.Memory.Read(p.PC))
         case Absolute, AbsoluteX, AbsoluteY, Indirect:
-            fmt.Printf("%02X %-2.02X ", p.Memory[p.PC], p.Memory[p.PC+1])
-        case nil:
+            fmt.Printf("%02X %-2.02X ", p.Memory.Read(p.PC), p.Memory.Read(p.PC+1))
+        default:
             fmt.Printf("%-6s", " ")
     }
 
@@ -88,51 +82,46 @@ func (p *CPU) Step() {
 
     switch op.Mode {
         case Immediate:
-            fmt.Printf("#$%-26.02X", p.Memory[p.PC])
+            fmt.Printf("#$%-26.02X", p.Memory.Read(p.PC))
         case ZeroPage:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("$%02X = %-22.02X", p.Memory[p.PC], p.Memory[location])
+            fmt.Printf("$%02X = %-22.02X", p.Memory.Read(p.PC), p.Memory.Read(location))
         case ZeroPageX:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("$%02X,X @ %02X = %-15.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
+            fmt.Printf("$%02X,X @ %02X = %-15.02X", p.Memory.Read(p.PC), location & 0xff, p.Memory.Read(location))
         case ZeroPageY:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("$%02X,Y @ %02X = %-15.02X", p.Memory[p.PC], location & 0xff, p.Memory[location])
+            fmt.Printf("$%02X,Y @ %02X = %-15.02X", p.Memory.Read(p.PC), location & 0xff, p.Memory.Read(location))
         case Absolute:
             if op.Name == "JMP" || op.Name == "JSR" {
                 fmt.Printf("$%-27.04X", p.absolute())
             } else {
-                fmt.Printf("$%04X = %-20.02X", p.absolute(), p.Memory[p.absolute()])
+                fmt.Printf("$%04X = %-20.02X", p.absolute(), p.Memory.Read(p.absolute()))
             }
         case Indirect:
             location := p.absolute()
-            high := p.Memory[location+1]
-            low := p.Memory[location]
+            high := p.Memory.Read(location+1)
+            low := p.Memory.Read(location)
             indirectLocation := (Address(high) << 8) + Address(low)
 
             fmt.Printf("($%04X) = %-18.04X", p.absolute(), indirectLocation)
         case AbsoluteX:
-            fmt.Printf("$%04X,X @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.X), p.Memory[p.absolute()+Address(p.X)])
+            fmt.Printf("$%04X,X @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.X), p.Memory.Read(p.absolute()+Address(p.X)))
         case AbsoluteY:
-            fmt.Printf("$%04X,Y @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.Y), p.Memory[p.absolute()+Address(p.Y)])
+            fmt.Printf("$%04X,Y @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.Y), p.Memory.Read(p.absolute()+Address(p.Y)))
         case IndexedIndirect:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("($%02X,X) @ %02X = %04X = %-6.02X", p.Memory[p.PC], p.Memory[p.PC] + p.X, location, p.Memory[location])
+            fmt.Printf("($%02X,X) @ %02X = %04X = %-6.02X", p.Memory.Read(p.PC), p.Memory.Read(p.PC) + p.X, location, p.Memory.Read(location))
         case IndirectIndexed:
             location, _ := addressing[op.Mode.(int)](p)
-            fmt.Printf("($%02X),Y = %04X @ %04X = %-4.02X", p.Memory[p.PC], location - Address(p.Y), location, p.Memory[location])
+            fmt.Printf("($%02X),Y = %04X @ %04X = %-4.02X", p.Memory.Read(p.PC), location - Address(p.Y), location, p.Memory.Read(location))
         case Relative:
             location, _ := addressing[op.Mode.(int)](p)
             fmt.Printf("$%-27.04X", location)
+        case Accumulator:
+            fmt.Printf("%-28s", "A")
         case nil:
-            switch op.Method.(type) {
-                case func(*CPU, *byte):
-                    // Accumulator addressing.
-                    fmt.Printf("%-28s", "A")
-                default:
-                    // No addressing
-                    fmt.Printf("%-28s", " ")
-            }
+            fmt.Printf("%-28s", " ")
     }
 
     fmt.Printf("A:%02X X:%02X Y:%02X P:%02X SP:%02X\n", p.A, p.X, p.Y, p.Flags, p.SP)
@@ -163,7 +152,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x97: Op{"*SAX", (*CPU).Sax, ZeroPageY},
             0x83: Op{"*SAX", (*CPU).Sax, IndexedIndirect},
             0x8f: Op{"*SAX", (*CPU).Sax, Absolute},
-            0x0a: Op{"ASL", (*CPU).Asl, nil},
+            0x0a: Op{"ASL", (*CPU).AslAcc, Accumulator},
             0x06: Op{"ASL", (*CPU).Asl, ZeroPage},
             0x16: Op{"ASL", (*CPU).Asl, ZeroPageX},
             0x0e: Op{"ASL", (*CPU).Asl, Absolute},
@@ -265,7 +254,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xbf: Op{"*LAX", (*CPU).Lax, AbsoluteY},
             0xa3: Op{"*LAX", (*CPU).Lax, IndexedIndirect},
             0xb3: Op{"*LAX", (*CPU).Lax, IndirectIndexed},
-            0x4a: Op{"LSR", (*CPU).Lsr, nil},
+            0x4a: Op{"LSR", (*CPU).LsrAcc, Accumulator},
             0x46: Op{"LSR", (*CPU).Lsr, ZeroPage},
             0x56: Op{"LSR", (*CPU).Lsr, ZeroPageX},
             0x4e: Op{"LSR", (*CPU).Lsr, Absolute},
@@ -317,7 +306,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x08: Op{"PHP", (*CPU).Php, nil},
             0x68: Op{"PLA", (*CPU).Pla, nil},
             0x28: Op{"PLP", (*CPU).Plp, nil},
-            0x2a: Op{"ROL", (*CPU).Rol, nil},
+            0x2a: Op{"ROL", (*CPU).RolAcc, Accumulator},
             0x26: Op{"ROL", (*CPU).Rol, ZeroPage},
             0x36: Op{"ROL", (*CPU).Rol, ZeroPageX},
             0x2e: Op{"ROL", (*CPU).Rol, Absolute},
@@ -329,7 +318,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x3b: Op{"*RLA", (*CPU).Rla, AbsoluteY},
             0x23: Op{"*RLA", (*CPU).Rla, IndexedIndirect},
             0x33: Op{"*RLA", (*CPU).Rla, IndirectIndexed},
-            0x6a: Op{"ROR", (*CPU).Ror, nil},
+            0x6a: Op{"ROR", (*CPU).RorAcc, Accumulator},
             0x66: Op{"ROR", (*CPU).Ror, ZeroPage},
             0x76: Op{"ROR", (*CPU).Ror, ZeroPageX},
             0x6e: Op{"ROR", (*CPU).Ror, Absolute},
@@ -395,7 +384,7 @@ func (p *CPU) Address(mode AddressMode) Address {
 }
 
 func (p *CPU) Relative() (Address, int) {
-    var offset = Address(p.Memory[p.PC])
+    var offset = Address(p.Memory.Read(p.PC))
     if offset < 0x0080 {
         offset += p.PC + 1
     } else {
@@ -410,20 +399,21 @@ func (p *CPU) Immediate() (Address, int) {
 }
 
 func (p *CPU) ZeroPage() (Address, int) {
-    return Address(p.Memory[p.PC]), 1
+    return Address(p.Memory.buffer[p.PC]), 1
+    /*return Address(p.Memory.Read(p.PC)), 1*/
 }
 
 func (p *CPU) ZeroPageX() (Address, int) {
-    return Address(p.Memory[p.PC] + p.X), 1
+    return Address(p.Memory.Read(p.PC) + p.X), 1
 }
 
 func (p *CPU) ZeroPageY() (Address, int) {
-    return Address(p.Memory[p.PC] + p.Y), 1
+    return Address(p.Memory.Read(p.PC) + p.Y), 1
 }
 
 func (p *CPU) absolute() Address {
-    high := p.Memory[p.PC+1]
-    low := p.Memory[p.PC]
+    high := p.Memory.Read(p.PC+1)
+    low := p.Memory.Read(p.PC)
 
     return (Address(high) << 8) + Address(low)
 }
@@ -443,41 +433,41 @@ func (p *CPU) AbsoluteY() (Address, int) {
 func (p *CPU) Indirect() (Address, int) {
     location := p.absolute()
 
-    low := p.Memory[location]
+    low := p.Memory.Read(location)
 
     var high byte
     if location & 0x00ff == 0x00ff {
-        high = p.Memory[location & 0xff00]
+        high = p.Memory.Read(location & 0xff00)
     } else {
-        high = p.Memory[location+1]
+        high = p.Memory.Read(location+1)
     }
 
     return (Address(high) << 8) + Address(low), 2
 }
 
 func (p *CPU) IndexedIndirect() (Address, int) {
-    pointer := p.Memory[p.PC] + p.X
+    pointer := p.Memory.Read(p.PC) + p.X
 
-    high := p.Memory[pointer+1]
-    low := p.Memory[pointer]
+    high := p.Memory.Read(Address(pointer+1))
+    low := p.Memory.Read(Address(pointer))
 
     return (Address(high) << 8) + Address(low), 1
 }
 
 func (p *CPU) indirectIndexed() (Address, Address) {
-    indirect := Address(p.Memory[p.PC])
+    indirect := Address(p.Memory.Read(p.PC))
 
-    high := p.Memory[indirect+1]
-    low := p.Memory[indirect]
+    high := p.Memory.Read(indirect+1)
+    low := p.Memory.Read(indirect)
 
     return indirect, (Address(high) << 8) + Address(low) + Address(p.Y)
 }
 
 func (p *CPU) IndirectIndexed() (Address, int) {
-    indirect := p.Memory[p.PC]
+    indirect := p.Memory.Read(p.PC)
 
-    high := p.Memory[Address(indirect+1)]
-    low := p.Memory[Address(indirect)]
+    high := p.Memory.Read(Address(indirect+1))
+    low := p.Memory.Read(Address(indirect))
 
     return ((Address(high) << 8) + Address(low)) + Address(p.Y), 1
 }
@@ -587,7 +577,7 @@ func (p *CPU) Negative() bool {
 }
 
 func (p *CPU) Adc(location Address) {
-    other := p.Memory[location]
+    other := p.Memory.Read(location)
     old := p.A
 
     p.A += other
@@ -612,7 +602,7 @@ func (p *CPU) Adc(location Address) {
 }
 
 func (p *CPU) Sbc(location Address) {
-    other := p.Memory[location]
+    other := p.Memory.Read(location)
     old := p.A
 
     p.A -= other
@@ -637,42 +627,53 @@ func (p *CPU) Sbc(location Address) {
 }
 
 func (p *CPU) Sax(location Address) {
-    p.Memory[location] = p.A & p.X
+    p.Memory.Write(p.A & p.X, location)
 }
 
 func (p *CPU) And(location Address) {
-    other := p.Memory[location]
+    other := p.Memory.Read(location)
     p.A &= other
 
     p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) Ora(location Address) {
-    other := p.Memory[location]
+    other := p.Memory.Read(location)
     p.A |= other
 
     p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) Slo(location Address) {
-    p.Asl(&p.Memory[location])
+    p.Asl(location)
     p.Ora(location)
 }
 
-func (p *CPU) Asl(memory *byte) {
-    if *memory & 0x80 == 0x80 {
+func (p *CPU) asl(val byte) byte {
+    if val & 0x80 == 0x80 {
         p.setCarryFlag(true)
     } else {
         p.setCarryFlag(false)
     }
 
-    *memory = *memory << 1
+    val = val << 1
 
-    p.setNegativeAndZeroFlags(*memory)
+    p.setNegativeAndZeroFlags(val)
+
+    return val
+}
+
+func (p *CPU) AslAcc() {
+    p.A = p.asl(p.A)
+}
+
+func (p *CPU) Asl(location Address) {
+    var val = p.Memory.Read(location)
+    p.Memory.Write(p.asl(val), location)
 }
 
 func (p *CPU) Aac(location Address) {
-    p.A &= p.Memory[location]
+    p.A &= p.Memory.Read(location)
 
     if p.A == 0x00 {
         p.setZeroFlag(true)
@@ -690,7 +691,7 @@ func (p *CPU) Aac(location Address) {
 }
 
 func (p *CPU) Bit(location Address) {
-    result := p.A & p.Memory[location]
+    result := p.A & p.Memory.Read(location)
 
     if result == 0x00 {
         p.setZeroFlag(true)
@@ -698,13 +699,13 @@ func (p *CPU) Bit(location Address) {
         p.setZeroFlag(false)
     }
 
-    if p.Memory[location] & 0x40 == 0x40 {
+    if p.Memory.Read(location) & 0x40 == 0x40 {
         p.setOverflowFlag(true)
     } else {
         p.setOverflowFlag(false)
     }
 
-    if p.Memory[location] & 0x80 == 0x80 {
+    if p.Memory.Read(location) & 0x80 == 0x80 {
         p.setNegativeFlag(true)
     } else {
         p.setNegativeFlag(false)
@@ -740,68 +741,63 @@ func (p *CPU) compare(register byte, value byte) {
 }
 
 func (p *CPU) Cmp(location Address) {
-    p.compare(p.A, p.Memory[location])
+    p.compare(p.A, p.Memory.Read(location))
 }
 
 func (p *CPU) Cpx(location Address) {
-    p.compare(p.X, p.Memory[location])
+    p.compare(p.X, p.Memory.Read(location))
 }
 
 func (p *CPU) Cpy(location Address) {
-    p.compare(p.Y, p.Memory[location])
-}
-
-func (p *CPU) decrement(memory *byte) {
-    *memory -= 1
-
-    p.setNegativeAndZeroFlags(*memory)
+    p.compare(p.Y, p.Memory.Read(location))
 }
 
 func (p *CPU) Dcp(location Address) {
-    memory := &p.Memory[location]
-    *memory -= 1
-    p.compare(p.A, *memory)
+    p.Memory.Write(p.Memory.Read(location)-1, location)
+    p.compare(p.A, p.Memory.Read(location))
 }
 
 func (p *CPU) Dec(location Address) {
-    p.decrement(&p.Memory[location])
+    var val = p.Memory.Read(location)
+    p.Memory.Write(val - 1, location)
+    p.setNegativeAndZeroFlags(val - 1)
 }
 
 func (p *CPU) Dex() {
-    p.decrement(&p.X)
+    p.X -= 1
+    p.setNegativeAndZeroFlags(p.X)
 }
 
 func (p *CPU) Dey() {
-    p.decrement(&p.Y)
+    p.Y -= 1
+    p.setNegativeAndZeroFlags(p.Y)
 }
 
 func (p *CPU) Eor(location Address) {
-    p.A ^= p.Memory[location]
+    p.A ^= p.Memory.Read(location)
 
     p.setNegativeAndZeroFlags(p.A)
 }
 
-func (p *CPU) increment(memory *byte) {
-    *memory += 1
-
-    p.setNegativeAndZeroFlags(*memory)
-}
-
 func (p *CPU) Isb(location Address) {
-    p.increment(&p.Memory[location])
+    p.Inc(location)
     p.Sbc(location)
 }
 
 func (p *CPU) Inc(location Address) {
-    p.increment(&p.Memory[location])
+    var val = p.Memory.Read(location)
+    p.Memory.Write(val + 1, location)
+    p.setNegativeAndZeroFlags(val + 1)
 }
 
 func (p *CPU) Inx() {
-    p.increment(&p.X)
+    p.X += 1
+    p.setNegativeAndZeroFlags(p.X)
 }
 
 func (p *CPU) Iny() {
-    p.increment(&p.Y)
+    p.Y += 1
+    p.setNegativeAndZeroFlags(p.Y)
 }
 
 func (p *CPU) load(memory *byte, value byte) {
@@ -811,37 +807,47 @@ func (p *CPU) load(memory *byte, value byte) {
 }
 
 func (p *CPU) Lax(location Address) {
-    p.load(&p.A, p.Memory[location])
-    p.load(&p.X, p.Memory[location])
+    p.load(&p.A, p.Memory.Read(location))
+    p.load(&p.X, p.Memory.Read(location))
 }
 
 func (p *CPU) Lda(location Address) {
-    p.load(&p.A, p.Memory[location])
+    p.load(&p.A, p.Memory.Read(location))
 }
 
 func (p *CPU) Ldx(location Address) {
-    p.load(&p.X, p.Memory[location])
+    p.load(&p.X, p.Memory.Read(location))
 }
 
 func (p *CPU) Ldy(location Address) {
-    p.load(&p.Y, p.Memory[location])
+    p.load(&p.Y, p.Memory.Read(location))
 }
 
 func (p *CPU) Sre(location Address) {
-    p.Lsr(&p.Memory[location])
+    p.Lsr(location)
     p.Eor(location)
 }
 
-func (p *CPU) Lsr(memory *byte) {
-    if *memory & 0x01 == 0x01 {
+func (p *CPU) lsr(val byte) byte {
+    if val & 0x01 == 0x01 {
         p.setCarryFlag(true)
     } else {
         p.setCarryFlag(false)
     }
 
-    *memory = *memory >> 1
+    val = val >> 1
+    p.setNegativeAndZeroFlags(val)
 
-    p.setNegativeAndZeroFlags(*memory)
+    return val
+}
+
+func (p *CPU) LsrAcc() {
+    p.A = p.lsr(p.A)
+}
+
+func (p *CPU) Lsr(location Address) {
+    var val = p.Memory.Read(location)
+    p.Memory.Write(p.lsr(val), location)
 }
 
 func (p *CPU) _Nop(location Address) {}
@@ -849,7 +855,7 @@ func (p *CPU) _Nop(location Address) {}
 func (p *CPU) Nop() {}
 
 func (p *CPU) push(value byte) {
-    p.Memory[0x0100 + Address(p.SP)] = value
+    p.Memory.Write(value, 0x0100 + Address(p.SP))
 
     p.SP -= 1
 }
@@ -857,7 +863,7 @@ func (p *CPU) push(value byte) {
 func (p *CPU) pull(memory *byte) {
     p.SP += 1
 
-    *memory = p.Memory[0x0100 + Address(p.SP)]
+    *memory = p.Memory.Read(0x0100 + Address(p.SP))
 }
 
 func (p *CPU) Pha() {
@@ -880,17 +886,17 @@ func (p *CPU) Plp() {
 }
 
 func (p *CPU) Rla(location Address) {
-    p.Rol(&p.Memory[location])
+    p.Rol(location)
     p.And(location)
 }
 
-func (p *CPU) Rol(memory *byte) {
-    carried := (*memory & 0x80) == 0x80
+func (p *CPU) rol(val byte) byte {
+    carried := (val & 0x80) == 0x80
 
-    *memory = *memory << 1
+    val = val << 1
 
     if p.Carry() {
-        *memory |= 0x01
+        val |= 0x01
     }
 
     if carried {
@@ -899,21 +905,32 @@ func (p *CPU) Rol(memory *byte) {
         p.setCarryFlag(false)
     }
 
-    p.setNegativeAndZeroFlags(*memory)
+    p.setNegativeAndZeroFlags(val)
+
+    return val
+}
+
+func (p *CPU) RolAcc() {
+    p.A = p.rol(p.A)
+}
+
+func (p *CPU) Rol(location Address) {
+    var val = p.Memory.Read(location)
+    p.Memory.Write(p.rol(val), location)
 }
 
 func (p *CPU) Rra(location Address) {
-    p.Ror(&p.Memory[location])
+    p.Ror(location)
     p.Adc(location)
 }
 
-func (p *CPU) Ror(memory *byte) {
-    carried := (*memory & 0x01) == 0x01
+func (p *CPU) ror(val byte) byte {
+    carried := (val & 0x01) == 0x01
 
-    *memory = *memory >> 1
+    val = val >> 1
 
     if p.Carry() {
-        *memory |= 0x80
+        val |= 0x80
     }
 
     if carried {
@@ -922,7 +939,18 @@ func (p *CPU) Ror(memory *byte) {
         p.setCarryFlag(false)
     }
 
-    p.setNegativeAndZeroFlags(*memory)
+    p.setNegativeAndZeroFlags(val)
+
+    return val
+}
+
+func (p *CPU) RorAcc() {
+    p.A = p.ror(p.A)
+}
+
+func (p *CPU) Ror(location Address) {
+    var val = p.Memory.Read(location)
+    p.Memory.Write(p.ror(val), location)
 }
 
 func (p *CPU) Sec() {
@@ -938,15 +966,15 @@ func (p *CPU) Sei() {
 }
 
 func (p *CPU) Sta(location Address) {
-    p.Memory[location] = p.A
+    p.Memory.Write(p.A, location)
 }
 
 func (p *CPU) Stx(location Address) {
-    p.Memory[location] = p.X
+    p.Memory.Write(p.X, location)
 }
 
 func (p *CPU) Sty(location Address) {
-    p.Memory[location] = p.Y
+    p.Memory.Write(p.Y, location)
 }
 
 func (p *CPU) Tax() {
@@ -1038,8 +1066,8 @@ func (p *CPU) Brk() {
     p.push(p.Flags | 0x10)
     p.setInterruptDisable(true)
 
-    p.PC = Address(p.Memory[0xffff]) << 8
-    p.PC |= Address(p.Memory[0xfffe])
+    p.PC = Address(p.Memory.Read(0xffff)) << 8
+    p.PC |= Address(p.Memory.Read(0xfffe))
 }
 
 func (p *CPU) Jmp(location Address) {

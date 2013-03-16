@@ -31,17 +31,17 @@ func sty(value byte) (*CPU) {
 
 func TestStoring(t *testing.T) {
     var p = sta(0xbe)
-    if p.Memory[0] != 0xbe {
+    if p.Memory.Read(0) != 0xbe {
         t.Errorf("Storing accumulator didn't work")
     }
 
     p = stx(0xbe)
-    if p.Memory[0] != 0xbe {
+    if p.Memory.Read(0) != 0xbe {
         t.Errorf("Storing X didn't work")
     }
 
     p = sty(0xbe)
-    if p.Memory[0] != 0xbe {
+    if p.Memory.Read(0) != 0xbe {
         t.Errorf("Storing Y didn't work")
     }
 }

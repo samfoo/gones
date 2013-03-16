@@ -4,7 +4,7 @@ import "testing"
 
 func cmp(p *CPU, first byte, second byte) (*CPU) {
     p.A = first
-    p.Memory[0] = second
+    p.Memory.buffer[0] = second
     p.Cmp(0)
 
     return p
@@ -12,7 +12,7 @@ func cmp(p *CPU, first byte, second byte) (*CPU) {
 
 func cpx(p *CPU, first byte, second byte) (*CPU) {
     p.X = first
-    p.Memory[0] = second
+    p.Memory.buffer[0] = second
     p.Cpx(0)
 
     return p
@@ -20,7 +20,7 @@ func cpx(p *CPU, first byte, second byte) (*CPU) {
 
 func cpy(p *CPU, first byte, second byte) (*CPU) {
     p.Y = first
-    p.Memory[0] = second
+    p.Memory.buffer[0] = second
     p.Cpy(0)
 
     return p

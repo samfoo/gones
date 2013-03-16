@@ -10,7 +10,7 @@ func TestBrkStack(t *testing.T) {
 
     p.Brk()
 
-    stack := p.Memory[0x01fd:0x0200]
+    stack := p.Memory.buffer[0x01fd:0x0200]
 
     if stack[0] != 0x10 {
         t.Errorf("Flags were not pushed properly to the stack")
@@ -35,8 +35,8 @@ func TestBrkLoadsPC(t *testing.T) {
     p.PC = 0x0000
 
     // Set the interrupt program pointer
-    p.Memory[0xffff] = 0xbe
-    p.Memory[0xfffe] = 0xef
+    p.Memory.buffer[0xffff] = 0xbe
+    p.Memory.buffer[0xfffe] = 0xef
 
     p.Brk()
 

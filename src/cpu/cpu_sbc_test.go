@@ -4,7 +4,7 @@ import "testing"
 
 func (p *CPU) sbc(first byte, second byte) {
     p.A = first
-    p.Memory[0] = second
+    p.Memory.buffer[0] = second
     p.Sbc(0)
 }
 

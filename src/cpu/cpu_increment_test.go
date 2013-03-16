@@ -5,7 +5,7 @@ import "testing"
 func inc(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = value
+    p.Memory.buffer[0] = value
     p.Inc(0)
 
     return p
@@ -27,9 +27,9 @@ func iny(value byte) (*CPU) {
 
 func TestIncrementMutatesItem(t *testing.T) {
     var p = inc(0x01)
-    if p.Memory[0] != 0x02 {
+    if p.Memory.Read(0) != 0x02 {
         t.Errorf("Increment memory failed")
-        t.Errorf("Expected 0x02, got %#02x", p.Memory[0])
+        t.Errorf("Expected 0x02, got %#02x", p.Memory.Read(0))
     }
 
     p = inx(0x01)

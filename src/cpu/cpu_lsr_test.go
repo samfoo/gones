@@ -4,12 +4,12 @@ import "testing"
 
 func (p *CPU) lsrAccumulator(a byte) {
     p.A = a
-    p.Lsr(&p.A)
+    p.LsrAcc()
 }
 
 func (p *CPU) lsrMemory(a byte) {
-    p.Memory[0] = a
-    p.Lsr(&p.Memory[0])
+    p.Memory.buffer[0] = a
+    p.Lsr(0)
 }
 
 func TestLsrShiftsAccumulator(t *testing.T) {
@@ -29,9 +29,9 @@ func TestLsrShiftsMemoryLocation(t *testing.T) {
 
     p.lsrMemory(0x01)
 
-    if p.Memory[0] != 0x00 {
+    if p.Memory.Read(0) != 0x00 {
         t.Errorf("Shift left didn't work on a memory location")
-        t.Errorf("Expected 0x00, got %#02x", p.A)
+        t.Errorf("Expected 0x00, got %#02x", p.Memory.Read(0))
         t.FailNow()
     }
 }

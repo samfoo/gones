@@ -5,7 +5,7 @@ import "testing"
 func dec(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = value
+    p.Memory.buffer[0] = value
     p.Dec(0)
 
     return p
@@ -27,9 +27,9 @@ func dey(value byte) (*CPU) {
 
 func TestDecrementMutatesItem(t *testing.T) {
     var p = dec(0x02)
-    if p.Memory[0] != 0x01 {
+    if p.Memory.Read(0) != 0x01 {
         t.Errorf("Decrement memory failed")
-        t.Errorf("Expected 0x01, got %#02x", p.Memory[0])
+        t.Errorf("Expected 0x01, got %#02x", p.Memory.Read(0))
     }
 
     p = dex(0x02)

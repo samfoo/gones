@@ -6,7 +6,7 @@ func ror(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
     p.A = value
-    p.Ror(&p.A)
+    p.RorAcc()
 
     return p
 }
@@ -15,7 +15,7 @@ func rol(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
     p.A = value
-    p.Rol(&p.A)
+    p.RolAcc()
 
     return p
 }
@@ -25,7 +25,7 @@ func TestRorWithCarrySetBefore(t *testing.T) {
 
     p.setCarryFlag(true)
     p.A = 0x00
-    p.Ror(&p.A)
+    p.RorAcc()
 
     if p.A != 0x80 {
         t.Errorf("Rotating right with carry set should have set bit 7 to 1")

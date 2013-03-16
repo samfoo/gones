@@ -6,11 +6,9 @@ expected = File.new("assets/nestest.log").readlines.map { |l| l.gsub("\r\n", '')
 actual = `go run src/nestest.go`.split /\n/
 
 actual.zip(expected).each_with_index do |(a, e), i|
-  if e != a
-    if e.nil?
-      puts "!!!! #{a}"
-    end
-
+  if e.nil?
+    break
+  elsif e != a
     expected_diff = e.chars.zip(a.chars).map { |ec, ac|
       if ac != ec
         ec.foreground(:green)

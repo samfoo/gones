@@ -5,7 +5,7 @@ import "testing"
 func dcp(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = value
+    p.Memory.buffer[0] = value
     p.Dcp(0)
 
     return p
@@ -15,7 +15,7 @@ func lax(value byte) (*CPU) {
     var p *CPU = new(CPU)
 
     p.A, p.X = 0, 0
-    p.Memory[0] = value
+    p.Memory.buffer[0] = value
     p.Lax(0)
 
     return p
@@ -25,7 +25,7 @@ func aac(first byte, second byte) (*CPU) {
     var p *CPU = new(CPU)
 
     p.A = first
-    p.Memory[0] = second
+    p.Memory.buffer[0] = second
     p.Aac(0)
 
     return p
@@ -93,7 +93,7 @@ func TestLaxSetsNegativeFlag(t *testing.T) {
 func TestSaxAndsAAndX(t *testing.T) {
     p := sax(0xff, 0x45)
 
-    if p.Memory[0] != 0x45 {
+    if p.Memory.Read(0) != 0x45 {
         t.Errorf("Sax didn't and X and A into memory")
     }
 }
@@ -117,7 +117,7 @@ func TestSaxDoesntSetNegativeFlag(t *testing.T) {
 func TstDcpSubs1FromMemory(t *testing.T) {
     p := dcp(0x02)
 
-    if p.Memory[0] != 0x01 {
+    if p.Memory.Read(0) != 0x01 {
         t.Errorf("Dcp didn't decrement memory")
     }
 }

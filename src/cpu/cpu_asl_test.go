@@ -4,12 +4,12 @@ import "testing"
 
 func (p *CPU) aslAccumulator(a byte) {
     p.A = a
-    p.Asl(&p.A)
+    p.AslAcc()
 }
 
 func (p *CPU) aslMemory(a byte) {
-    p.Memory[0] = a
-    p.Asl(&p.Memory[0])
+    p.Memory.buffer[0] = a
+    p.Asl(0)
 }
 
 func TestAslShiftsAccumulator(t *testing.T) {
@@ -29,7 +29,7 @@ func TestAslShiftsMemoryLocation(t *testing.T) {
 
     p.aslMemory(0x01)
 
-    if p.Memory[0x00] != 0x02 {
+    if p.Memory.Read(0) != 0x02 {
         t.Errorf("Shift left didn't work on a memory location")
         t.Errorf("Expected 0x02, got %#02x", p.A)
         t.FailNow()

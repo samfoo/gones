@@ -40,9 +40,9 @@ func TestPushingValues(t *testing.T) {
 
         head := 0x0100 + Address(p.SP) + 0x0001
 
-        if p.Memory[head] != 0xbe {
+        if p.Memory.Read(head) != 0xbe {
             t.Errorf("Push didn't push to the top of the stack correctly")
-            t.Errorf("Expected 0xbe, got %#02x at %#04x", p.Memory[head], head)
+            t.Errorf("Expected 0xbe, got %#02x at %#04x", p.Memory.Read(head), head)
         }
     }
 
@@ -63,7 +63,7 @@ func TestPushingMultipleValues(t *testing.T) {
         t.Errorf("Pushing didn't decrement the stack pointer correctly")
     }
 
-    values := p.Memory[0x01fb:0x0200]
+    values := p.Memory.buffer[0x01fb:0x0200]
 
     for i := range values {
         if values[i] != 0x04 - byte(i) {

@@ -11,10 +11,10 @@ func (p *CPU) address(mode AddressMode) Address {
 func TestIndirectReference(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0x02
-    p.Memory[1] = 0x00
-    p.Memory[2] = 0xef
-    p.Memory[3] = 0xbe
+    p.Memory.buffer[0] = 0x02
+    p.Memory.buffer[1] = 0x00
+    p.Memory.buffer[2] = 0xef
+    p.Memory.buffer[3] = 0xbe
 
     p.PC = 0x00
 
@@ -29,10 +29,10 @@ func TestIndirectReference(t *testing.T) {
 func TestIndirectReferenceOnPageBoundary(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0xbe
-    p.Memory[1] = 0xff
-    p.Memory[2] = 0x00
-    p.Memory[0x00ff] = 0xef
+    p.Memory.buffer[0] = 0xbe
+    p.Memory.buffer[1] = 0xff
+    p.Memory.buffer[2] = 0x00
+    p.Memory.buffer[0x00ff] = 0xef
 
     p.PC = 0x01
 
@@ -47,7 +47,7 @@ func TestIndirectReferenceOnPageBoundary(t *testing.T) {
 func TestImmediateReference(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0xbe
+    p.Memory.buffer[0] = 0xbe
 
     p.PC = 0x00
 
@@ -60,7 +60,7 @@ func TestImmediateReference(t *testing.T) {
 func TestZeroPageReference(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0xbe
+    p.Memory.buffer[0] = 0xbe
 
     p.PC = 0x00
 
@@ -73,7 +73,7 @@ func TestZeroPageReference(t *testing.T) {
 func TestZeroPageXReference(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0xbe
+    p.Memory.buffer[0] = 0xbe
 
     p.X = 0x01
     p.PC = 0x00
@@ -87,8 +87,8 @@ func TestZeroPageXReference(t *testing.T) {
 func TestAbsoluteReference(t *testing.T) {
     var p *CPU = new(CPU)
 
-    p.Memory[0] = 0xef
-    p.Memory[1] = 0xbe
+    p.Memory.buffer[0] = 0xef
+    p.Memory.buffer[1] = 0xbe
 
     p.PC = 0x00
 
@@ -118,9 +118,9 @@ func TestIndexedIndirect(t *testing.T) {
     p.PC = 0x00
     p.X = 0x01
 
-    p.Memory[0] = 0x00
-    p.Memory[1] = 0xef
-    p.Memory[2] = 0xbe
+    p.Memory.buffer[0] = 0x00
+    p.Memory.buffer[1] = 0xef
+    p.Memory.buffer[2] = 0xbe
 
     if p.address((*CPU).IndexedIndirect) != 0xbeef {
         t.Errorf("Indexed indirect memory reference pointed to the wrong location")
@@ -128,9 +128,9 @@ func TestIndexedIndirect(t *testing.T) {
     }
 
     p.X = 0x00
-    p.Memory[0] = 0xfe
-    p.Memory[0xff] = 0xfa
-    p.Memory[0xfe] = 0xca
+    p.Memory.buffer[0] = 0xfe
+    p.Memory.buffer[0xff] = 0xfa
+    p.Memory.buffer[0xfe] = 0xca
 
     if p.address((*CPU).IndexedIndirect) != 0xfaca {
         t.Errorf("Indexed indirect memory reference pointed to the wrong location")
@@ -144,9 +144,9 @@ func TestIndirectIndexed(t *testing.T) {
     p.PC = 0x00
     p.Y = 0x00
 
-    p.Memory[0] = 0x01
-    p.Memory[1] = 0xef
-    p.Memory[2] = 0xbe
+    p.Memory.buffer[0] = 0x01
+    p.Memory.buffer[1] = 0xef
+    p.Memory.buffer[2] = 0xbe
 
     var location, _ = p.IndirectIndexed()
 
