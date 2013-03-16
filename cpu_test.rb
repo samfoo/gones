@@ -26,7 +26,6 @@ actual.zip(expected).each_with_index do |(a, e), i|
     }.join ''
 
     if ![
-      5013, 5143, 5175, 5176, 5177, 5178, 5179, 5180, # Problems with $A9A9 -- is this a device?
       8981, 8983, 8985, 8987, 8989 # Problems with $40xx, this is the APU, so no wonder there
     ].include?(i+1)
       ([0, i-15].max..i-1).each { |i| puts "                " + actual[i] }

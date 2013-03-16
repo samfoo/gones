@@ -29,9 +29,11 @@ func main() {
     }
 
     for i := 0; i < 0x4000; i++ {
-        location := 0xc000 + cpu.Address(i)
+        low := 0x8000 + cpu.Address(i)
+        high := 0xc000 + cpu.Address(i)
 
-        proc.Memory.Write(rom[i], location)
+        proc.Memory.Write(rom[i], low)
+        proc.Memory.Write(rom[i], high)
     }
 
     proc.PC = 0xc000
