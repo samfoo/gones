@@ -33,6 +33,7 @@ const (
     Indirect
     Relative
     Accumulator
+    Implied
 )
 
 var addressing = map[int]AddressMode {
@@ -120,7 +121,7 @@ func (p *CPU) Step() {
             fmt.Printf("$%-27.04X", location)
         case Accumulator:
             fmt.Printf("%-28s", "A")
-        case nil:
+        case Implied:
             fmt.Printf("%-28s", " ")
     }
 
@@ -172,13 +173,13 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x2c: Op{"BIT", (*CPU).Bit, Absolute},
             0x30: Op{"BMI", (*CPU).Bmi, Relative},
             0x10: Op{"BPL", (*CPU).Bpl, Relative},
-            0x00: Op{"BRK", (*CPU).Brk, nil},
+            0x00: Op{"BRK", (*CPU).Brk, Implied},
             0x50: Op{"BVC", (*CPU).Bvc, Relative},
             0x70: Op{"BVS", (*CPU).Bvs, Relative},
-            0x18: Op{"CLC", (*CPU).Clc, nil},
-            0xd8: Op{"CLD", (*CPU).Cld, nil},
-            0x58: Op{"CLI", (*CPU).Cli, nil},
-            0xb8: Op{"CLV", (*CPU).Clv, nil},
+            0x18: Op{"CLC", (*CPU).Clc, Implied},
+            0xd8: Op{"CLD", (*CPU).Cld, Implied},
+            0x58: Op{"CLI", (*CPU).Cli, Implied},
+            0xb8: Op{"CLV", (*CPU).Clv, Implied},
             0xc9: Op{"CMP", (*CPU).Cmp, Immediate},
             0xc5: Op{"CMP", (*CPU).Cmp, ZeroPage},
             0xd5: Op{"CMP", (*CPU).Cmp, ZeroPageX},
@@ -204,8 +205,8 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xdb: Op{"*DCP", (*CPU).Dcp, AbsoluteY},
             0xc3: Op{"*DCP", (*CPU).Dcp, IndexedIndirect},
             0xd3: Op{"*DCP", (*CPU).Dcp, IndirectIndexed},
-            0xca: Op{"DEX", (*CPU).Dex, nil},
-            0x88: Op{"DEY", (*CPU).Dey, nil},
+            0xca: Op{"DEX", (*CPU).Dex, Implied},
+            0x88: Op{"DEY", (*CPU).Dey, Implied},
             0xe6: Op{"INC", (*CPU).Inc, ZeroPage},
             0xf6: Op{"INC", (*CPU).Inc, ZeroPageX},
             0xee: Op{"INC", (*CPU).Inc, Absolute},
@@ -217,8 +218,8 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xfb: Op{"*ISB", (*CPU).Isb, AbsoluteY},
             0xe3: Op{"*ISB", (*CPU).Isb, IndexedIndirect},
             0xf3: Op{"*ISB", (*CPU).Isb, IndirectIndexed},
-            0xe8: Op{"INX", (*CPU).Inx, nil},
-            0xc8: Op{"INY", (*CPU).Iny, nil},
+            0xe8: Op{"INX", (*CPU).Inx, Implied},
+            0xc8: Op{"INY", (*CPU).Iny, Implied},
             0x49: Op{"EOR", (*CPU).Eor, Immediate},
             0x45: Op{"EOR", (*CPU).Eor, ZeroPage},
             0x55: Op{"EOR", (*CPU).Eor, ZeroPageX},
@@ -266,7 +267,7 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x5b: Op{"*SRE", (*CPU).Sre, AbsoluteY},
             0x43: Op{"*SRE", (*CPU).Sre, IndexedIndirect},
             0x53: Op{"*SRE", (*CPU).Sre, IndirectIndexed},
-            0xea: Op{"NOP", (*CPU).Nop, nil},
+            0xea: Op{"NOP", (*CPU).Nop, Implied},
             0x04: Op{"*NOP", (*CPU)._Nop, ZeroPage},
             0x14: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
             0x34: Op{"*NOP", (*CPU)._Nop, ZeroPageX},
@@ -288,12 +289,12 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x7c: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
             0xdc: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
             0xfc: Op{"*NOP", (*CPU)._Nop, AbsoluteX},
-            0x1a: Op{"*NOP", (*CPU).Nop, nil},
-            0x3a: Op{"*NOP", (*CPU).Nop, nil},
-            0x5a: Op{"*NOP", (*CPU).Nop, nil},
-            0x7a: Op{"*NOP", (*CPU).Nop, nil},
-            0xda: Op{"*NOP", (*CPU).Nop, nil},
-            0xfa: Op{"*NOP", (*CPU).Nop, nil},
+            0x1a: Op{"*NOP", (*CPU).Nop, Implied},
+            0x3a: Op{"*NOP", (*CPU).Nop, Implied},
+            0x5a: Op{"*NOP", (*CPU).Nop, Implied},
+            0x7a: Op{"*NOP", (*CPU).Nop, Implied},
+            0xda: Op{"*NOP", (*CPU).Nop, Implied},
+            0xfa: Op{"*NOP", (*CPU).Nop, Implied},
             0x09: Op{"ORA", (*CPU).Ora, Immediate},
             0x05: Op{"ORA", (*CPU).Ora, ZeroPage},
             0x15: Op{"ORA", (*CPU).Ora, ZeroPageX},
@@ -302,10 +303,10 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x19: Op{"ORA", (*CPU).Ora, AbsoluteY},
             0x01: Op{"ORA", (*CPU).Ora, IndexedIndirect},
             0x11: Op{"ORA", (*CPU).Ora, IndirectIndexed},
-            0x48: Op{"PHA", (*CPU).Pha, nil},
-            0x08: Op{"PHP", (*CPU).Php, nil},
-            0x68: Op{"PLA", (*CPU).Pla, nil},
-            0x28: Op{"PLP", (*CPU).Plp, nil},
+            0x48: Op{"PHA", (*CPU).Pha, Implied},
+            0x08: Op{"PHP", (*CPU).Php, Implied},
+            0x68: Op{"PLA", (*CPU).Pla, Implied},
+            0x28: Op{"PLP", (*CPU).Plp, Implied},
             0x2a: Op{"ROL", (*CPU).RolAcc, Accumulator},
             0x26: Op{"ROL", (*CPU).Rol, ZeroPage},
             0x36: Op{"ROL", (*CPU).Rol, ZeroPageX},
@@ -330,8 +331,8 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x7b: Op{"*RRA", (*CPU).Rra, AbsoluteY},
             0x63: Op{"*RRA", (*CPU).Rra, IndexedIndirect},
             0x73: Op{"*RRA", (*CPU).Rra, IndirectIndexed},
-            0x40: Op{"RTI", (*CPU).Rti, nil},
-            0x60: Op{"RTS", (*CPU).Rts, nil},
+            0x40: Op{"RTI", (*CPU).Rti, Implied},
+            0x60: Op{"RTS", (*CPU).Rts, Implied},
             0xe9: Op{"SBC", (*CPU).Sbc, Immediate},
             0xe5: Op{"SBC", (*CPU).Sbc, ZeroPage},
             0xf5: Op{"SBC", (*CPU).Sbc, ZeroPageX},
@@ -341,9 +342,9 @@ func (p *CPU) Operations() map[Opcode]Op {
             0xe1: Op{"SBC", (*CPU).Sbc, IndexedIndirect},
             0xf1: Op{"SBC", (*CPU).Sbc, IndirectIndexed},
             0xeb: Op{"*SBC", (*CPU).Sbc, Immediate},
-            0x38: Op{"SEC", (*CPU).Sec, nil},
-            0xf8: Op{"SED", (*CPU).Sed, nil},
-            0x78: Op{"SEI", (*CPU).Sei, nil},
+            0x38: Op{"SEC", (*CPU).Sec, Implied},
+            0xf8: Op{"SED", (*CPU).Sed, Implied},
+            0x78: Op{"SEI", (*CPU).Sei, Implied},
             0x85: Op{"STA", (*CPU).Sta, ZeroPage},
             0x95: Op{"STA", (*CPU).Sta, ZeroPageX},
             0x8d: Op{"STA", (*CPU).Sta, Absolute},
@@ -357,12 +358,12 @@ func (p *CPU) Operations() map[Opcode]Op {
             0x86: Op{"STX", (*CPU).Stx, ZeroPage},
             0x96: Op{"STX", (*CPU).Stx, ZeroPageY},
             0x8e: Op{"STX", (*CPU).Stx, Absolute},
-            0xaa: Op{"TAX", (*CPU).Tax, nil},
-            0xa8: Op{"TAY", (*CPU).Tay, nil},
-            0xba: Op{"TSX", (*CPU).Tsx, nil},
-            0x8a: Op{"TXA", (*CPU).Txa, nil},
-            0x9a: Op{"TXS", (*CPU).Txs, nil},
-            0x98: Op{"TYA", (*CPU).Tya, nil},
+            0xaa: Op{"TAX", (*CPU).Tax, Implied},
+            0xa8: Op{"TAY", (*CPU).Tay, Implied},
+            0xba: Op{"TSX", (*CPU).Tsx, Implied},
+            0x8a: Op{"TXA", (*CPU).Txa, Implied},
+            0x9a: Op{"TXS", (*CPU).Txs, Implied},
+            0x98: Op{"TYA", (*CPU).Tya, Implied},
         }
     }
 
