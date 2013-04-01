@@ -12,48 +12,20 @@ type CPU struct {
 }
 
 type Opcode byte
-type AddressMode func(*CPU) (Address, int)
 
 type Op struct {
     Name string
     Method interface{}
-    Mode interface{}
-}
-
-const (
-    Immediate = iota
-    ZeroPage
-    ZeroPageX
-    ZeroPageY
-    IndexedIndirect
-    IndirectIndexed
-    Absolute
-    AbsoluteX
-    AbsoluteY
-    Indirect
-    Relative
-    Accumulator
-    Implied
-)
-
-var addressing = map[int]AddressMode {
-    Immediate: (*CPU).Immediate,
-    ZeroPage: (*CPU).ZeroPage,
-    ZeroPageX: (*CPU).ZeroPageX,
-    ZeroPageY: (*CPU).ZeroPageY,
-    IndexedIndirect: (*CPU).IndexedIndirect,
-    IndirectIndexed: (*CPU).IndirectIndexed,
-    Absolute: (*CPU).Absolute,
-    AbsoluteX: (*CPU).AbsoluteX,
-    AbsoluteY: (*CPU).AbsoluteY,
-    Indirect: (*CPU).Indirect,
-    Relative: (*CPU).Relative,
+    Mode int
 }
 
 func (p *CPU) Execute(op Op) {
     switch m := op.Method.(type) {
         case func(*CPU, Address):
-            m(p, p.Address(addressing[op.Mode.(int)]))
+            location := addressing[op.Mode](p)
+            p.PC += addressSize(op.Mode)
+
+            m(p, location)
         case func(*CPU):
             m(p)
     }
@@ -85,13 +57,13 @@ func (p *CPU) Step() {
         case Immediate:
             fmt.Printf("#$%-26.02X", p.Memory.Read(p.PC))
         case ZeroPage:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("$%02X = %-22.02X", p.Memory.Read(p.PC), p.Memory.Read(location))
         case ZeroPageX:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("$%02X,X @ %02X = %-15.02X", p.Memory.Read(p.PC), location & 0xff, p.Memory.Read(location))
         case ZeroPageY:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("$%02X,Y @ %02X = %-15.02X", p.Memory.Read(p.PC), location & 0xff, p.Memory.Read(location))
         case Absolute:
             if op.Name == "JMP" || op.Name == "JSR" {
@@ -111,13 +83,13 @@ func (p *CPU) Step() {
         case AbsoluteY:
             fmt.Printf("$%04X,Y @ %04X = %-11.02X", p.absolute(), p.absolute() + Address(p.Y), p.Memory.Read(p.absolute()+Address(p.Y)))
         case IndexedIndirect:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("($%02X,X) @ %02X = %04X = %-6.02X", p.Memory.Read(p.PC), p.Memory.Read(p.PC) + p.X, location, p.Memory.Read(location))
         case IndirectIndexed:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("($%02X),Y = %04X @ %04X = %-4.02X", p.Memory.Read(p.PC), location - Address(p.Y), location, p.Memory.Read(location))
         case Relative:
-            location, _ := addressing[op.Mode.(int)](p)
+            location := addressing[op.Mode](p)
             fmt.Printf("$%-27.04X", location)
         case Accumulator:
             fmt.Printf("%-28s", "A")
@@ -374,102 +346,6 @@ func (p *CPU) Reset() {
     p.Flags = 0x24
     p.A, p.X, p.Y = 0x00, 0x00, 0x00
     p.SP = 0xfd
-}
-
-func (p *CPU) Address(mode AddressMode) Address {
-    var location, i = mode(p)
-
-    p.PC += Address(i)
-
-    return location
-}
-
-func (p *CPU) Relative() (Address, int) {
-    var offset = Address(p.Memory.Read(p.PC))
-    if offset < 0x0080 {
-        offset += p.PC + 1
-    } else {
-        offset += (p.PC - 0x100) + 1
-    }
-
-    return offset, 1
-}
-
-func (p *CPU) Immediate() (Address, int) {
-    return p.PC, 1
-}
-
-func (p *CPU) ZeroPage() (Address, int) {
-    return Address(p.Memory.Read(p.PC)), 1
-}
-
-func (p *CPU) ZeroPageX() (Address, int) {
-    return Address(p.Memory.Read(p.PC) + p.X), 1
-}
-
-func (p *CPU) ZeroPageY() (Address, int) {
-    return Address(p.Memory.Read(p.PC) + p.Y), 1
-}
-
-func (p *CPU) absolute() Address {
-    high := p.Memory.Read(p.PC+1)
-    low := p.Memory.Read(p.PC)
-
-    return (Address(high) << 8) + Address(low)
-}
-
-func (p *CPU) Absolute() (Address, int) {
-    return p.absolute(), 2
-}
-
-func (p *CPU) AbsoluteX() (Address, int) {
-    return p.absolute() + Address(p.X), 2
-}
-
-func (p *CPU) AbsoluteY() (Address, int) {
-    return p.absolute() + Address(p.Y), 2
-}
-
-func (p *CPU) Indirect() (Address, int) {
-    location := p.absolute()
-
-    low := p.Memory.Read(location)
-
-    var high byte
-    if location & 0x00ff == 0x00ff {
-        high = p.Memory.Read(location & 0xff00)
-    } else {
-        high = p.Memory.Read(location+1)
-    }
-
-    return (Address(high) << 8) + Address(low), 2
-}
-
-func (p *CPU) IndexedIndirect() (Address, int) {
-    pointer := p.Memory.Read(p.PC) + p.X
-
-    high := p.Memory.Read(Address(pointer+1))
-    low := p.Memory.Read(Address(pointer))
-
-    return (Address(high) << 8) + Address(low), 1
-}
-
-func (p *CPU) indirectIndexed() (Address, Address) {
-    indirect := Address(p.Memory.Read(p.PC))
-
-    high := p.Memory.Read(indirect+1)
-    low := p.Memory.Read(indirect)
-
-    return indirect, (Address(high) << 8) + Address(low) + Address(p.Y)
-}
-
-func (p *CPU) IndirectIndexed() (Address, int) {
-    indirect := p.Memory.Read(p.PC)
-
-    high := p.Memory.Read(Address(indirect+1))
-    low := p.Memory.Read(Address(indirect))
-
-    return ((Address(high) << 8) + Address(low)) + Address(p.Y), 1
 }
 
 func (p *CPU) setFlag(mask byte, value bool) {

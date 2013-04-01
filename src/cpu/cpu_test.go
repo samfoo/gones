@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func (p *CPU) address(mode AddressMode) Address {
-    var location, _ = mode(p)
+    var location = mode(p)
 
     return location
 }
@@ -18,7 +18,7 @@ func TestIndirectReference(t *testing.T) {
 
     p.PC = 0x00
 
-    location, _ := p.Indirect()
+    location := p.Indirect()
 
     if location != 0xbeef {
         t.Errorf("Indirect reference pointed to the wrong location")
@@ -36,7 +36,7 @@ func TestIndirectReferenceOnPageBoundary(t *testing.T) {
 
     p.PC = 0x01
 
-    location, _ := p.Indirect()
+    location := p.Indirect()
 
     if location != 0xbeef {
         t.Errorf("Indirect reference failed to emulate the notorious page boundary indirect bug")
@@ -148,7 +148,7 @@ func TestIndirectIndexed(t *testing.T) {
     p.Memory.buffer[1] = 0xef
     p.Memory.buffer[2] = 0xbe
 
-    var location, _ = p.IndirectIndexed()
+    var location = p.IndirectIndexed()
 
     if location != 0xbeef {
         t.Errorf("Indirect indexed memory reference pointed to the wrong location")
@@ -157,7 +157,7 @@ func TestIndirectIndexed(t *testing.T) {
 
     p.Y = 0x01
 
-    location, _ = p.IndirectIndexed()
+    location = p.IndirectIndexed()
 
     if location != 0xbef0 {
         t.Errorf("Indirect indexed memory reference pointed to the wrong location")
