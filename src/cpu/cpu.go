@@ -5,8 +5,9 @@ type Address uint16
 type CPU struct {
     A, X, Y, SP, Flags byte
     PC Address
-    Memory RAM
+    Memory Memory
     operations map[Opcode]Op
+    cycles int
 }
 
 type Opcode byte
