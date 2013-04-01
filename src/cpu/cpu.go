@@ -399,8 +399,7 @@ func (p *CPU) Immediate() (Address, int) {
 }
 
 func (p *CPU) ZeroPage() (Address, int) {
-    return Address(p.Memory.buffer[p.PC]), 1
-    /*return Address(p.Memory.Read(p.PC)), 1*/
+    return Address(p.Memory.Read(p.PC)), 1
 }
 
 func (p *CPU) ZeroPageX() (Address, int) {
