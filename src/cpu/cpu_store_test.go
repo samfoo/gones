@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func sta(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.Sta(0x0000)
@@ -12,7 +12,7 @@ func sta(value byte) (*CPU) {
 }
 
 func stx(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.X = value
     p.Stx(0x0000)
@@ -21,7 +21,7 @@ func stx(value byte) (*CPU) {
 }
 
 func sty(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Y = value
     p.Sty(0x0000)

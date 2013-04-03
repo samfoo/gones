@@ -9,7 +9,7 @@ func (p *CPU) andImmediate(first byte, second byte) {
 }
 
 func TestAndSetsAccumulator(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.andImmediate(0x01, 0xff)
 
@@ -21,7 +21,7 @@ func TestAndSetsAccumulator(t *testing.T) {
 }
 
 func TestAndZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.andImmediate(0x00, 0x00)
 
@@ -32,7 +32,7 @@ func TestAndZeroFlagSet(t *testing.T) {
 }
 
 func TestAndNegativeFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.andImmediate(0x80, 0x80)
 

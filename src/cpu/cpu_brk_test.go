@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestBrkStack(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0xbeef
@@ -29,7 +29,7 @@ func TestBrkStack(t *testing.T) {
 }
 
 func TestBrkLoadsPC(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0x0000
@@ -47,7 +47,7 @@ func TestBrkLoadsPC(t *testing.T) {
 }
 
 func TestBrkSetsInterruptDiable(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0x0000

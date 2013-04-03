@@ -32,7 +32,7 @@ func TestCompareNegativeUnsetsCarryFlag(t *testing.T) {
             t.Errorf("Carry flag should be unset when {register} < {value} but was set")
         }
     }
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.setCarryFlag(true)
     validate(cmp(p, 0x00, 0x01))
     p.setCarryFlag(true)
@@ -47,9 +47,9 @@ func TestCompareGreaterThan(t *testing.T) {
             t.Errorf("Carry flag should be set when {register} > {value} but isn't (flags: %08b)", p.Flags)
         }
     }
-    validate(cmp(new(CPU), 0x01, 0x00))
-    validate(cpy(new(CPU), 0x01, 0x00))
-    validate(cpx(new(CPU), 0x01, 0x00))
+    validate(cmp(NewCPU(), 0x01, 0x00))
+    validate(cpy(NewCPU(), 0x01, 0x00))
+    validate(cpx(NewCPU(), 0x01, 0x00))
 }
 
 func TestCompareEqual(t *testing.T) {
@@ -63,9 +63,9 @@ func TestCompareEqual(t *testing.T) {
         }
     }
 
-    validate(cmp(new(CPU), 0x01, 0x01))
-    validate(cpy(new(CPU), 0x01, 0x01))
-    validate(cpx(new(CPU), 0x01, 0x01))
+    validate(cmp(NewCPU(), 0x01, 0x01))
+    validate(cpy(NewCPU(), 0x01, 0x01))
+    validate(cpx(NewCPU(), 0x01, 0x01))
 }
 
 func TestCompareNegative(t *testing.T) {
@@ -75,7 +75,7 @@ func TestCompareNegative(t *testing.T) {
         }
     }
 
-    validate(cmp(new(CPU), 0x00, 0x01))
-    validate(cpy(new(CPU), 0x00, 0x01))
-    validate(cpx(new(CPU), 0x00, 0x01))
+    validate(cmp(NewCPU(), 0x00, 0x01))
+    validate(cpy(NewCPU(), 0x00, 0x01))
+    validate(cpx(NewCPU(), 0x00, 0x01))
 }

@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestBccBranchesIfNoCarry(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bcc(0x0025)
@@ -15,7 +15,7 @@ func TestBccBranchesIfNoCarry(t *testing.T) {
 }
 
 func TestBccDoesntBranchIfCarry(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x01
     p.Bcc(0x0025)
@@ -27,7 +27,7 @@ func TestBccDoesntBranchIfCarry(t *testing.T) {
 }
 
 func TestBcsNoBranchIfNoCarry(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bcs(0x0025)
@@ -39,7 +39,7 @@ func TestBcsNoBranchIfNoCarry(t *testing.T) {
 }
 
 func TestBcsBranchesIfCarry(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x01
     p.Bcs(0x0025)
@@ -51,7 +51,7 @@ func TestBcsBranchesIfCarry(t *testing.T) {
 }
 
 func TestBeqDoesntBranchIfNoZero(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Beq(0x0025)
@@ -63,7 +63,7 @@ func TestBeqDoesntBranchIfNoZero(t *testing.T) {
 }
 
 func TestBeqBranchesIfZero(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x02
     p.Beq(0x0025)
@@ -75,7 +75,7 @@ func TestBeqBranchesIfZero(t *testing.T) {
 }
 
 func TestBmiBranchesIfNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x80
     p.Bmi(0x0025)
@@ -87,7 +87,7 @@ func TestBmiBranchesIfNegative(t *testing.T) {
 }
 
 func TestBmiDoesntBranchIfNoNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bmi(0x0025)
@@ -99,7 +99,7 @@ func TestBmiDoesntBranchIfNoNegative(t *testing.T) {
 }
 
 func TestBneBranchesIfNoZero(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bne(0x0025)
@@ -111,7 +111,7 @@ func TestBneBranchesIfNoZero(t *testing.T) {
 }
 
 func TestBneDoesntBranchIfZero(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x02
     p.Bne(0x0025)
@@ -123,7 +123,7 @@ func TestBneDoesntBranchIfZero(t *testing.T) {
 }
 
 func TestBplBranchesIfNotNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bpl(0x0025)
@@ -135,7 +135,7 @@ func TestBplBranchesIfNotNegative(t *testing.T) {
 }
 
 func TestBplDoesntBranchIfNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x80
     p.Bpl(0x0025)
@@ -147,7 +147,7 @@ func TestBplDoesntBranchIfNegative(t *testing.T) {
 }
 
 func TestBvcBranchIfOverflowClear(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bvc(0x0025)
@@ -159,7 +159,7 @@ func TestBvcBranchIfOverflowClear(t *testing.T) {
 }
 
 func TestBvcNoBranchIfOverflow(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x40
     p.Bvc(0x0025)
@@ -171,7 +171,7 @@ func TestBvcNoBranchIfOverflow(t *testing.T) {
 }
 
 func TestBvsNoBranchIfOverflowClear(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Bvs(0x0025)
@@ -183,7 +183,7 @@ func TestBvsNoBranchIfOverflowClear(t *testing.T) {
 }
 
 func TestBvsBranchIfOverflow(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x40
     p.Bvs(0x0025)

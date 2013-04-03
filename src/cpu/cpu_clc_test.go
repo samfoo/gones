@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestClcClearsCarryFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0xff
     p.Clc()

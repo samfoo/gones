@@ -9,7 +9,7 @@ func (p *CPU) address(mode AddressMode) Address {
 }
 
 func TestIndirectReference(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0x02
     p.Memory.buffer[1] = 0x00
@@ -27,7 +27,7 @@ func TestIndirectReference(t *testing.T) {
 }
 
 func TestIndirectReferenceOnPageBoundary(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0xbe
     p.Memory.buffer[1] = 0xff
@@ -45,7 +45,7 @@ func TestIndirectReferenceOnPageBoundary(t *testing.T) {
 }
 
 func TestImmediateReference(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0xbe
 
@@ -58,7 +58,7 @@ func TestImmediateReference(t *testing.T) {
 }
 
 func TestZeroPageReference(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0xbe
 
@@ -71,7 +71,7 @@ func TestZeroPageReference(t *testing.T) {
 }
 
 func TestZeroPageXReference(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0xbe
 
@@ -85,7 +85,7 @@ func TestZeroPageXReference(t *testing.T) {
 }
 
 func TestAbsoluteReference(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = 0xef
     p.Memory.buffer[1] = 0xbe
@@ -113,7 +113,7 @@ func TestAbsoluteReference(t *testing.T) {
 }
 
 func TestIndexedIndirect(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.PC = 0x00
     p.X = 0x01
@@ -139,7 +139,7 @@ func TestIndexedIndirect(t *testing.T) {
 }
 
 func TestIndirectIndexed(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.PC = 0x00
     p.Y = 0x00
@@ -166,7 +166,7 @@ func TestIndirectIndexed(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Reset()
 
@@ -192,7 +192,7 @@ func TestReset(t *testing.T) {
 }
 
 func TestNewCPUShouldHaveRegistersZerod(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     if p.A != 0x00 {
         t.Errorf("Accumulator is not zero'd")

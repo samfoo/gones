@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func pha(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.SP = 0xff
@@ -13,7 +13,7 @@ func pha(value byte) (*CPU) {
 }
 
 func php(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = value
     p.SP = 0xff
@@ -51,7 +51,7 @@ func TestPushingValues(t *testing.T) {
 }
 
 func TestPushingMultipleValues(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
 
     for i := 0; i < 5; i++ {

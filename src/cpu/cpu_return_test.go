@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestRtiStack(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0xbeef
@@ -27,7 +27,7 @@ func TestRtiStack(t *testing.T) {
 }
 
 func TestRtsStack(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0xbeef

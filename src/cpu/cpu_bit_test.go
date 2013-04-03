@@ -9,7 +9,7 @@ func (p *CPU) bitTest(first byte, second byte) {
 }
 
 func TestBitSetsZeroFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.bitTest(0x00, 0x00)
 
@@ -17,7 +17,7 @@ func TestBitSetsZeroFlag(t *testing.T) {
         t.Errorf("Zero flag should be set when result is 0x00 (flags: %08b)", p.Flags)
     }
 
-    p = new(CPU)
+    p = NewCPU()
     p.setZeroFlag(true)
 
     p.bitTest(0x40, 0xff)
@@ -27,7 +27,7 @@ func TestBitSetsZeroFlag(t *testing.T) {
 }
 
 func TestBitSetsOverflowFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.bitTest(0x40, 0xff)
 
@@ -38,7 +38,7 @@ func TestBitSetsOverflowFlag(t *testing.T) {
 }
 
 func TestBitSetsNegativeFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.bitTest(0x80, 0xff)
 

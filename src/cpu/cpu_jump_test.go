@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestJmpSetsPC(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Jmp(0xbeef)
 
@@ -13,7 +13,7 @@ func TestJmpSetsPC(t *testing.T) {
 }
 
 func TestJsrStack(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.SP = 0xff
     p.PC = 0xbeef
@@ -33,7 +33,7 @@ func TestJsrStack(t *testing.T) {
 }
 
 func TestJsrPC(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Jsr(0xbeef)
 

@@ -9,7 +9,7 @@ func (p *CPU) eorImmediate(first byte, second byte) {
 }
 
 func TestEorSetsAccumulator(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.eorImmediate(0x01, 0xff)
 
@@ -21,7 +21,7 @@ func TestEorSetsAccumulator(t *testing.T) {
 }
 
 func TestEorZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.eorImmediate(0x00, 0x00)
 
@@ -32,7 +32,7 @@ func TestEorZeroFlagSet(t *testing.T) {
 }
 
 func TestEorNegativeFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.eorImmediate(0x80, 0x00)
 

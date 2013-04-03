@@ -13,7 +13,7 @@ func (p *CPU) lsrMemory(a byte) {
 }
 
 func TestLsrShiftsAccumulator(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.lsrAccumulator(0x01)
 
@@ -25,7 +25,7 @@ func TestLsrShiftsAccumulator(t *testing.T) {
 }
 
 func TestLsrShiftsMemoryLocation(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.lsrMemory(0x01)
 
@@ -37,7 +37,7 @@ func TestLsrShiftsMemoryLocation(t *testing.T) {
 }
 
 func TestLsrZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.lsrAccumulator(0x00)
 
@@ -48,7 +48,7 @@ func TestLsrZeroFlagSet(t *testing.T) {
 }
 
 func TestLsrCarryFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.lsrAccumulator(0x01)
 
@@ -59,7 +59,7 @@ func TestLsrCarryFlagSet(t *testing.T) {
 }
 
 func TestLsrCarryFlagUnset(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setCarryFlag(true)
     p.lsrAccumulator(0x02)

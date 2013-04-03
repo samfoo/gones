@@ -7,7 +7,6 @@ type CPU struct {
     PC Address
     Memory Memory
     operations map[Opcode]Op
-    cycles int
 }
 
 type Opcode byte
@@ -16,6 +15,12 @@ type Op struct {
     Name string
     Method interface{}
     Mode int
+}
+
+func NewCPU() *CPU {
+    p := new(CPU)
+
+    return p
 }
 
 func (p *CPU) Execute(op Op) {

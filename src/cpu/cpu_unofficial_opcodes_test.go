@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func dcp(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Dcp(0)
@@ -12,7 +12,7 @@ func dcp(value byte) (*CPU) {
 }
 
 func lax(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A, p.X = 0, 0
     p.Memory.buffer[0] = value
@@ -22,7 +22,7 @@ func lax(value byte) (*CPU) {
 }
 
 func aac(first byte, second byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = first
     p.Memory.buffer[0] = second
@@ -32,7 +32,7 @@ func aac(first byte, second byte) (*CPU) {
 }
 
 func sax(a byte, x byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = a
     p.X = x

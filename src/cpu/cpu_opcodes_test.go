@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU)) {
-    var p = new(CPU)
+    var p = NewCPU()
     p.Reset()
     branch(p)
     p.execute(op, []byte{0x02})
@@ -12,7 +12,7 @@ func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU))
         t.Errorf("Expected %#02x, got %#02x", 0x03, p.PC)
     }
 
-    p = new(CPU)
+    p = NewCPU()
     p.Reset()
     nobranch(p)
     p.execute(op, []byte{0x02})
@@ -23,7 +23,7 @@ func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU))
 }
 
 func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) bool) {
-    var p = new(CPU)
+    var p = NewCPU()
     p.Reset()
     run(p)
 

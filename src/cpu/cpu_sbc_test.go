@@ -9,7 +9,7 @@ func (p *CPU) sbc(first byte, second byte) {
 }
 
 func TestSbcNoOverflow(t *testing.T) {
-    var p (*CPU) = new(CPU)
+    var p (*CPU) = NewCPU()
 
     p.sbc(0x01, 0x01)
 
@@ -20,7 +20,7 @@ func TestSbcNoOverflow(t *testing.T) {
 }
 
 func TestSbcPositiveFromNegativeOverflowSetsOverflowFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.sbc(0x80, 0x0f)
 
@@ -30,7 +30,7 @@ func TestSbcPositiveFromNegativeOverflowSetsOverflowFlag(t *testing.T) {
 }
 
 func TestSbcNegativeFromPositiveOverflowSetsOverflowFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.setCarryFlag(true)
 
     p.sbc(0x00, 0x80)
@@ -41,7 +41,7 @@ func TestSbcNegativeFromPositiveOverflowSetsOverflowFlag(t *testing.T) {
 }
 
 func TestSbcUnsetsOverflowFlagWhenNoOverflow(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setOverflowFlag(true)
     p.sbc(0x01, 0x00)
@@ -52,7 +52,7 @@ func TestSbcUnsetsOverflowFlagWhenNoOverflow(t *testing.T) {
 }
 
 func TestSbcUnsignedOverflowSetsCarryFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.sbc(0x10, 0x01)
 
@@ -62,7 +62,7 @@ func TestSbcUnsignedOverflowSetsCarryFlag(t *testing.T) {
 }
 
 func TestSbcUnsetsCarryFlagWhenNoCarry(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setCarryFlag(true)
     p.sbc(0x00, 0x01)
@@ -73,7 +73,7 @@ func TestSbcUnsetsCarryFlagWhenNoCarry(t *testing.T) {
 }
 
 func TestSbcWithCarryAlreadySetDoesNotSubtract1(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.setCarryFlag(true)
     p.sbc(0x01, 0x00)
 
@@ -84,7 +84,7 @@ func TestSbcWithCarryAlreadySetDoesNotSubtract1(t *testing.T) {
 }
 
 func TestSbcWithCarryUnsetSubtracts1(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.setCarryFlag(false)
     p.sbc(0x01, 0x00)
 
@@ -95,7 +95,7 @@ func TestSbcWithCarryUnsetSubtracts1(t *testing.T) {
 }
 
 func TestSbcSetsNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.sbc(0x00, 0x01)
 
@@ -105,7 +105,7 @@ func TestSbcSetsNegative(t *testing.T) {
 }
 
 func TestSbcSetsZero(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.setCarryFlag(true)
 
     p.sbc(0x01, 0x01)

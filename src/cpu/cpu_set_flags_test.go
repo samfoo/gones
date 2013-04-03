@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func TestSec(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Sec()
@@ -14,7 +14,7 @@ func TestSec(t *testing.T) {
 }
 
 func TestSed(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Sed()
@@ -25,7 +25,7 @@ func TestSed(t *testing.T) {
 }
 
 func TestSei(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Flags = 0x00
     p.Sei()

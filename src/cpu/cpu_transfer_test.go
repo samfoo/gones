@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func tax(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.Tax()
@@ -12,7 +12,7 @@ func tax(value byte) (*CPU) {
 }
 
 func tay(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.Tay()
@@ -21,7 +21,7 @@ func tay(value byte) (*CPU) {
 }
 
 func tsx(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.SP = value
     p.Tsx()
@@ -30,7 +30,7 @@ func tsx(value byte) (*CPU) {
 }
 
 func txa(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.X = value
     p.Txa()
@@ -39,7 +39,7 @@ func txa(value byte) (*CPU) {
 }
 
 func txs(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.X = value
     p.Txs()
@@ -48,7 +48,7 @@ func txs(value byte) (*CPU) {
 }
 
 func tya(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Y = value
     p.Tya()

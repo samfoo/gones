@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func inc(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Inc(0)
@@ -12,14 +12,14 @@ func inc(value byte) (*CPU) {
 }
 
 func inx(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.X = value
     p.Inx()
     return p
 }
 
 func iny(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.Y = value
     p.Iny()
     return p

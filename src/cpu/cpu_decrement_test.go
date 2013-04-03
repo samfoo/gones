@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func dec(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Dec(0)
@@ -12,14 +12,14 @@ func dec(value byte) (*CPU) {
 }
 
 func dex(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.X = value
     p.Dex()
     return p
 }
 
 func dey(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.Y = value
     p.Dey()
     return p

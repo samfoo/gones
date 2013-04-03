@@ -13,7 +13,7 @@ func (p *CPU) aslMemory(a byte) {
 }
 
 func TestAslShiftsAccumulator(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.aslAccumulator(0x01)
 
@@ -25,7 +25,7 @@ func TestAslShiftsAccumulator(t *testing.T) {
 }
 
 func TestAslShiftsMemoryLocation(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.aslMemory(0x01)
 
@@ -37,7 +37,7 @@ func TestAslShiftsMemoryLocation(t *testing.T) {
 }
 
 func TestAslZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.aslAccumulator(0x00)
 
@@ -48,7 +48,7 @@ func TestAslZeroFlagSet(t *testing.T) {
 }
 
 func TestAslNegativeFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.aslAccumulator(0x40)
 
@@ -59,7 +59,7 @@ func TestAslNegativeFlagSet(t *testing.T) {
 }
 
 func TestAslCarryFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.aslAccumulator(0x80)
 
@@ -70,7 +70,7 @@ func TestAslCarryFlagSet(t *testing.T) {
 }
 
 func TestAslCarryFlagUnset(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setCarryFlag(true)
     p.aslAccumulator(0x40)

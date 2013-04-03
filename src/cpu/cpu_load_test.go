@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func lda(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Lda(0)
@@ -12,7 +12,7 @@ func lda(value byte) (*CPU) {
 }
 
 func ldx(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Ldx(0)
@@ -21,7 +21,7 @@ func ldx(value byte) (*CPU) {
 }
 
 func ldy(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.Memory.buffer[0] = value
     p.Ldy(0)

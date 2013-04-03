@@ -9,7 +9,7 @@ func (p *CPU) adc(first byte, second byte) {
 }
 
 func TestZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.adc(0x00, 0x00)
 
@@ -24,7 +24,7 @@ func TestZeroFlagSet(t *testing.T) {
 }
 
 func TestAdcSetsNegative(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.adc(0x00, 0x80)
 
@@ -34,7 +34,7 @@ func TestAdcSetsNegative(t *testing.T) {
 }
 
 func TestAdcNoOverflow(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.adc(0x00, 0x99)
 
@@ -44,7 +44,7 @@ func TestAdcNoOverflow(t *testing.T) {
 }
 
 func TestAdcOverflow(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.adc(0xff, 0x01)
 
@@ -54,7 +54,7 @@ func TestAdcOverflow(t *testing.T) {
 }
 
 func TestNoUnsignedOverflowUnsetsCarryFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setCarryFlag(true)
     p.adc(0x00, 0x01)
@@ -65,7 +65,7 @@ func TestNoUnsignedOverflowUnsetsCarryFlag(t *testing.T) {
 }
 
 func TestAdcUnsignedOverflowSetsCarryFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.adc(0xff, 0x01)
 
@@ -75,7 +75,7 @@ func TestAdcUnsignedOverflowSetsCarryFlag(t *testing.T) {
 }
 
 func TestAdcWithCarryAlreadySetAdds1(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
     p.Flags |= 0x01
     p.adc(0x00, 0x00)
 
@@ -86,7 +86,7 @@ func TestAdcWithCarryAlreadySetAdds1(t *testing.T) {
 }
 
 func TestSignedPositiveOverflowSetsOverflowFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     // First and second numbers' sign bit is 0 and the result's sign bit is 1
     // is positive overflow
@@ -102,7 +102,7 @@ func TestSignedPositiveOverflowSetsOverflowFlag(t *testing.T) {
 }
 
 func TestSignedNegativeOverflowSetsOverflowFlag(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     // First and second numbers' sign bit is 1 and the result's sign bit is 0
     // is negative overflow

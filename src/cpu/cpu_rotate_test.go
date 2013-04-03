@@ -3,7 +3,7 @@ package cpu
 import "testing"
 
 func ror(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.RorAcc()
@@ -12,7 +12,7 @@ func ror(value byte) (*CPU) {
 }
 
 func rol(value byte) (*CPU) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.A = value
     p.RolAcc()
@@ -21,7 +21,7 @@ func rol(value byte) (*CPU) {
 }
 
 func TestRorWithCarrySetBefore(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.setCarryFlag(true)
     p.A = 0x00

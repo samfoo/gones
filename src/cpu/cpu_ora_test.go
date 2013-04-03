@@ -9,7 +9,7 @@ func (p *CPU) oraImmediate(first byte, second byte) {
 }
 
 func TestOraSetsAccumulator(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.oraImmediate(0x01, 0xff)
 
@@ -21,7 +21,7 @@ func TestOraSetsAccumulator(t *testing.T) {
 }
 
 func TestOraZeroFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.oraImmediate(0x00, 0x00)
 
@@ -32,7 +32,7 @@ func TestOraZeroFlagSet(t *testing.T) {
 }
 
 func TestOraNegativeFlagSet(t *testing.T) {
-    var p *CPU = new(CPU)
+    var p *CPU = NewCPU()
 
     p.oraImmediate(0x80, 0x80)
 
