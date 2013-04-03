@@ -7,6 +7,7 @@ type CPU struct {
     PC Address
     Memory Memory
     operations map[Opcode]Op
+    cycles int
 }
 
 type Opcode byte
@@ -23,6 +24,16 @@ func NewCPU() *CPU {
     return p
 }
 
+func (p *CPU) Read(location Address) byte {
+    p.cycles++
+    return p.Memory.Read(location)
+}
+
+func (p *CPU) Write(value byte, location Address) {
+    p.cycles++
+    p.Memory.Write(value, location)
+}
+
 func (p *CPU) Execute(op Op) {
     switch m := op.Method.(type) {
         case func(*CPU, Address):
@@ -35,15 +46,17 @@ func (p *CPU) Execute(op Op) {
     }
 }
 
-func (p *CPU) Step() {
-    opcode := Opcode(p.Memory.Read(p.PC))
+func (p *CPU) Step() int {
+    opcode := Opcode(p.Read(p.PC))
     op := p.Operations()[opcode]
 
     p.PC++
 
-    p.Debugf(opcode, op)
+    /*p.Debugf(opcode, op)*/
 
     p.Execute(op)
+
+    return p.cycles
 }
 
 func (p *CPU) Operations() map[Opcode]Op {
@@ -397,7 +410,7 @@ func (p *CPU) Negative() bool {
 }
 
 func (p *CPU) Adc(location Address) {
-    other := p.Memory.Read(location)
+    other := p.Read(location)
     old := p.A
 
     p.A += other
@@ -422,7 +435,7 @@ func (p *CPU) Adc(location Address) {
 }
 
 func (p *CPU) Sbc(location Address) {
-    other := p.Memory.Read(location)
+    other := p.Read(location)
     old := p.A
 
     p.A -= other
