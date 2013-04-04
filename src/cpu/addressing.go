@@ -43,7 +43,7 @@ func addressSize(mode int) Address {
 }
 
 func (p *CPU) Relative() Address {
-    var offset = Address(p.Memory.Read(p.PC))
+    var offset = Address(p.Read(p.PC))
     if offset < 0x0080 {
         offset += p.PC + 1
     } else {
@@ -66,13 +66,19 @@ func (p *CPU) ZeroPageX() Address {
 
     // zpx does an extra read of the pre-x address, which cycles an extra time.
     // See -- http://nemulator.com/files/nes_emu.txt
-    p.Read(Address(addr))
+    p.cycles++
 
     return Address(addr + p.X)
 }
 
 func (p *CPU) ZeroPageY() Address {
-    return Address(p.Memory.Read(p.PC) + p.Y)
+    addr := p.Read(p.PC)
+
+    // zpy does an extra read of the pre-x address, which cycles an extra time.
+    // See -- http://nemulator.com/files/nes_emu.txt
+    p.cycles++
+
+    return Address(addr + p.Y)
 }
 
 func (p *CPU) absolute() Address {
@@ -92,7 +98,7 @@ func (p *CPU) AbsoluteX() Address {
 
     // absx does an extra read if the address crosses a page boundary.
     if (abs & 0x100) ^ (addr & 0x100) != 0 {
-        p.Read(Address(addr))
+        p.cycles++
     }
 
     return addr
@@ -104,7 +110,7 @@ func (p *CPU) AbsoluteY() Address {
 
     // absx does an extra read if the address crosses a page boundary.
     if (abs & 0x100) ^ (addr & 0x100) != 0 {
-        p.Read(Address(addr))
+        p.cycles++
     }
 
     return addr
@@ -113,13 +119,13 @@ func (p *CPU) AbsoluteY() Address {
 func (p *CPU) Indirect() Address {
     location := p.absolute()
 
-    low := p.Memory.Read(location)
+    low := p.Read(location)
 
     var high byte
     if location & 0x00ff == 0x00ff {
-        high = p.Memory.Read(location & 0xff00)
+        high = p.Read(location & 0xff00)
     } else {
-        high = p.Memory.Read(location+1)
+        high = p.Read(location+1)
     }
 
     return (Address(high) << 8) + Address(low)
@@ -130,7 +136,7 @@ func (p *CPU) IndexedIndirect() Address {
 
     // indx does an extra read pointer, which cycles an extra time.
     // See -- http://nemulator.com/files/nes_emu.txt
-    p.Read(Address(pointer))
+    p.cycles++
 
     high := p.Read(Address(pointer+p.X+1))
     low := p.Read(Address(pointer+p.X))
@@ -149,7 +155,7 @@ func (p *CPU) IndirectIndexed() Address {
 
     // indirect idx does an extra read if the address crosses a page boundary.
     if (ind & 0x100) ^ (addr & 0x100) != 0 {
-        p.Read(Address(addr))
+        p.cycles++
     }
 
     return addr
