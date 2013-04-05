@@ -2,6 +2,10 @@ package cpu
 
 type AddressMode func(*CPU) Address
 
+type Reader interface {
+    Read(Address) byte
+}
+
 const (
     Immediate = iota
     ZeroPage
@@ -42,8 +46,8 @@ func addressSize(mode int) Address {
     return 1
 }
 
-func (p *CPU) Relative() Address {
-    var offset = Address(p.Read(p.PC))
+func (p *CPU) relative(r Reader) Address {
+    var offset = Address(r.Read(p.PC))
     if offset < 0x0080 {
         offset += p.PC + 1
     } else {
@@ -53,47 +57,63 @@ func (p *CPU) Relative() Address {
     return offset
 }
 
+func (p *CPU) Relative() Address {
+    return p.relative(p)
+}
+
 func (p *CPU) Immediate() Address {
     return p.PC
 }
 
-func (p *CPU) ZeroPage() Address {
-    return Address(p.Read(p.PC))
+func (p *CPU) zeroPage(r Reader) Address {
+    return Address(r.Read(p.PC))
 }
 
-func (p *CPU) ZeroPageX() Address {
-    addr := p.Read(p.PC)
+func (p *CPU) ZeroPage() Address {
+    return p.zeroPage(p)
+}
 
-    // zpx does an extra read of the pre-x address, which cycles an extra time.
-    // See -- http://nemulator.com/files/nes_emu.txt
-    p.cycles++
+func (p *CPU) zeroPageX(r Reader) Address {
+    addr := r.Read(p.PC)
 
     return Address(addr + p.X)
 }
 
-func (p *CPU) ZeroPageY() Address {
-    addr := p.Read(p.PC)
-
-    // zpy does an extra read of the pre-x address, which cycles an extra time.
+func (p *CPU) ZeroPageX() Address {
+    // zpx does an extra read of the pre-x address, which cycles an extra time.
     // See -- http://nemulator.com/files/nes_emu.txt
     p.cycles++
+
+    return p.zeroPageX(p)
+}
+
+func (p *CPU) zeroPageY(r Reader) Address {
+    addr := r.Read(p.PC)
 
     return Address(addr + p.Y)
 }
 
-func (p *CPU) absolute() Address {
-    high := p.Read(p.PC+1)
-    low := p.Read(p.PC)
+func (p *CPU) ZeroPageY() Address {
+    // zpy does an extra read of the pre-x address, which cycles an extra time.
+    // See -- http://nemulator.com/files/nes_emu.txt
+    p.cycles++
+
+    return p.zeroPageY(p)
+}
+
+func (p *CPU) absolute(r Reader) Address {
+    high := r.Read(p.PC+1)
+    low := r.Read(p.PC)
 
     return (Address(high) << 8) + Address(low)
 }
 
 func (p *CPU) Absolute() Address {
-    return p.absolute()
+    return p.absolute(p)
 }
 
 func (p *CPU) AbsoluteX() Address {
-    abs := p.absolute()
+    abs := p.absolute(p)
     addr := abs + Address(p.X)
 
     // absx does an extra read if the address crosses a page boundary.
@@ -105,7 +125,7 @@ func (p *CPU) AbsoluteX() Address {
 }
 
 func (p *CPU) AbsoluteY() Address {
-    abs := p.absolute()
+    abs := p.absolute(p)
     addr := abs + Address(p.Y)
 
     // absx does an extra read if the address crosses a page boundary.
@@ -116,39 +136,47 @@ func (p *CPU) AbsoluteY() Address {
     return addr
 }
 
-func (p *CPU) Indirect() Address {
-    location := p.absolute()
+func (p *CPU) indirect(r Reader) Address {
+    location := p.absolute(r)
 
-    low := p.Read(location)
+    low := r.Read(location)
 
     var high byte
     if location & 0x00ff == 0x00ff {
-        high = p.Read(location & 0xff00)
+        high = r.Read(location & 0xff00)
     } else {
-        high = p.Read(location+1)
+        high = r.Read(location+1)
     }
 
     return (Address(high) << 8) + Address(low)
 }
 
-func (p *CPU) IndexedIndirect() Address {
-    pointer := p.Read(p.PC)
+func (p *CPU) Indirect() Address {
+    return p.indirect(p)
+}
 
-    // indx does an extra read pointer, which cycles an extra time.
-    // See -- http://nemulator.com/files/nes_emu.txt
-    p.cycles++
+func (p *CPU) indexedIndirect(r Reader) Address {
+    pointer := r.Read(p.PC)
 
-    high := p.Read(Address(pointer+p.X+1))
-    low := p.Read(Address(pointer+p.X))
+    high := r.Read(Address(pointer+p.X+1))
+    low := r.Read(Address(pointer+p.X))
 
     return (Address(high) << 8) + Address(low)
 }
 
-func (p *CPU) IndirectIndexed() Address {
-    indirect := p.Read(p.PC)
+func (p *CPU) IndexedIndirect() Address {
+    // indx does an extra read pointer, which cycles an extra time.
+    // See -- http://nemulator.com/files/nes_emu.txt
+    p.cycles++
 
-    high := p.Read(Address(indirect+1))
-    low := p.Read(Address(indirect))
+    return p.indexedIndirect(p)
+}
+
+func (p *CPU) indirectIndexed(r Reader) Address {
+    indirect := r.Read(p.PC)
+
+    high := r.Read(Address(indirect+1))
+    low := r.Read(Address(indirect))
 
     ind := ((Address(high) << 8) + Address(low))
     addr := ind + Address(p.Y)
@@ -161,3 +189,6 @@ func (p *CPU) IndirectIndexed() Address {
     return addr
 }
 
+func (p *CPU) IndirectIndexed() Address {
+    return p.indirectIndexed(p)
+}

@@ -52,7 +52,7 @@ func (p *CPU) Step() int {
 
     p.PC++
 
-    /*p.Debugf(opcode, op)*/
+    p.Debugf(opcode, op)
 
     p.Execute(op)
 
@@ -303,6 +303,7 @@ func (p *CPU) Reset() {
     p.Flags = 0x24
     p.A, p.X, p.Y = 0x00, 0x00, 0x00
     p.SP = 0xfd
+    p.cycles = 0
 }
 
 func (p *CPU) setFlag(mask byte, value bool) {
