@@ -498,6 +498,7 @@ func (p *CPU) asl(val byte) byte {
 }
 
 func (p *CPU) AslAcc() {
+    p.cycles++
     p.A = p.asl(p.A)
 }
 
@@ -529,7 +530,7 @@ func (p *CPU) Aac(location Address) {
 
 func (p *CPU) Bit(location Address) {
     val := p.Read(location)
-    result := p.A & p.Read(location)
+    result := p.A & val
 
     if result == 0x00 {
         p.setZeroFlag(true)
@@ -694,6 +695,7 @@ func (p *CPU) lsr(val byte) byte {
 }
 
 func (p *CPU) LsrAcc() {
+    p.cycles++
     p.A = p.lsr(p.A)
 }
 
@@ -771,6 +773,7 @@ func (p *CPU) rol(val byte) byte {
 }
 
 func (p *CPU) RolAcc() {
+    p.cycles++
     p.A = p.rol(p.A)
 }
 
@@ -808,6 +811,7 @@ func (p *CPU) ror(val byte) byte {
 }
 
 func (p *CPU) RorAcc() {
+    p.cycles++
     p.A = p.ror(p.A)
 }
 
@@ -944,12 +948,14 @@ func (p *CPU) Bpl(location Address) {
 
 func (p *CPU) Bvc(location Address) {
     if !p.Overflow() {
+        p.cycleOnBranch(location)
         p.PC = location
     }
 }
 
 func (p *CPU) Bvs(location Address) {
     if p.Overflow() {
+        p.cycleOnBranch(location)
         p.PC = location
     }
 }

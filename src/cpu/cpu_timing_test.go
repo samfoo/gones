@@ -166,6 +166,14 @@ func TestBranchTiming(t *testing.T) {
     branchTimingTest(t, "Bne", (*CPU).Bne,
         func(p *CPU) { p.setZeroFlag(false) },
         func(p *CPU) { p.setZeroFlag(true) })
+
+    branchTimingTest(t, "Bvc", (*CPU).Bvc,
+        func(p *CPU) { p.setOverflowFlag(false) },
+        func(p *CPU) { p.setOverflowFlag(true) })
+
+    branchTimingTest(t, "Bvs", (*CPU).Bvs,
+        func(p *CPU) { p.setOverflowFlag(true) },
+        func(p *CPU) { p.setOverflowFlag(false) })
 }
 
 func TestNoArgsNonBranchTiming(t *testing.T) {
@@ -195,6 +203,10 @@ func TestNoArgsNonBranchTiming(t *testing.T) {
         "Txa": TimingTest { timeimpl((*CPU).Txa), 1 },
         "Txs": TimingTest { timeimpl((*CPU).Txs), 1 },
         "Tya": TimingTest { timeimpl((*CPU).Tya), 1 },
+        "Lsr acc": TimingTest { timeimpl((*CPU).LsrAcc), 1 },
+        "Asl acc": TimingTest { timeimpl((*CPU).AslAcc), 1 },
+        "Rol acc": TimingTest { timeimpl((*CPU).RolAcc), 1 },
+        "Ror acc": TimingTest { timeimpl((*CPU).RorAcc), 1 },
     }
 
     for name, test := range tests {
@@ -208,7 +220,7 @@ func TestArgsNonBranchTiming(t *testing.T) {
         "Sbc": TimingTest { time((*CPU).Sbc), 1 },
         "And": TimingTest { time((*CPU).And), 1 },
         "Asl": TimingTest { time((*CPU).Asl), 3 },
-        "Bit": TimingTest { time((*CPU).Bit), 2 },
+        "Bit": TimingTest { time((*CPU).Bit), 1 },
         "Cmp": TimingTest { time((*CPU).Cmp), 1 },
         "Cpx": TimingTest { time((*CPU).Cpx), 1 },
         "Cpy": TimingTest { time((*CPU).Cpy), 1 },
