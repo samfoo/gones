@@ -6,6 +6,7 @@ type CPU struct {
     A, X, Y, SP, Flags byte
     PC Address
     Memory Memory
+    Debug bool
     operations map[Opcode]Op
     cycles int
 }
@@ -52,7 +53,7 @@ func (p *CPU) Step() int {
 
     p.PC++
 
-    p.Debugf(opcode, op)
+    if p.Debug { p.Debugf(opcode, op) }
 
     p.Execute(op)
 

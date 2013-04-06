@@ -16,6 +16,7 @@ func main() {
     }
 
     proc := new(cpu.CPU)
+    proc.Debug = true
     proc.Reset()
 
     var rom *nes.ROM
