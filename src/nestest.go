@@ -1,15 +1,16 @@
 package main
 
 import (
-    "os"
     "cpu"
+    "nes"
+    "os"
     "log"
 )
 
 func main() {
     var file *os.File
     var err error
-    if file, err = os.Open("assets/nestest"); err != nil {
+    if file, err = os.Open("assets/nestest.nes"); err != nil {
         log.Fatal(err)
         return
     }
@@ -17,23 +18,19 @@ func main() {
     proc := new(cpu.CPU)
     proc.Reset()
 
-    rom := make([]byte, 0x10000)
-
-    if _, err := file.Read(rom); err != nil {
+    var rom *nes.ROM
+    rom, err = nes.ReadROM(file)
+    if err != nil {
         log.Fatal(err)
         return
-    }
-
-    for i := 0; i < 0x10000; i++ {
-        proc.Memory.Write(0x00, cpu.Address(i))
     }
 
     for i := 0; i < 0x4000; i++ {
         low := 0x8000 + cpu.Address(i)
         high := 0xc000 + cpu.Address(i)
 
-        proc.Memory.Write(rom[i], low)
-        proc.Memory.Write(rom[i], high)
+        proc.Memory.Write(rom.Data[i], low)
+        proc.Memory.Write(rom.Data[i], high)
     }
 
     proc.PC = 0xc000
