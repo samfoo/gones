@@ -2,55 +2,65 @@ package nes
 
 import (
     "io"
+    "io/ioutil"
     "bytes"
     "errors"
 )
 
 type ROM struct {
-    Data []byte
+    Banks [][]byte
+
+    data []byte
 }
+
+const (
+    PrgBankSize = 0x4000
+    ChrBankSize = 0x2000
+)
 
 func ReadROM(r io.Reader) (rom *ROM, err error) {
     rom = new(ROM)
 
-    var header *ines
-    header, err = ReadHeader(r)
+    var raw []byte
+    raw, err = ioutil.ReadAll(r)
     if err != nil { return }
 
-    rom.Data = make([]byte, header.PrgRomSize)
-    _, err = r.Read(rom.Data)
+    rom.data = raw[16:]
+
+    var header *Header
+    header, err = ParseHeader(raw)
     if err != nil { return }
+
+    rom.Banks = make([][]byte, header.PrgRomSize)
+    for i := 0; i < header.PrgRomSize; i++ {
+        rom.Banks[i] = rom.data[PrgBankSize*i:PrgBankSize*(i+1)]
+    }
 
     return
 }
 
-type ines struct {
+type Header struct {
     PrgRomSize int
     ChrRomSize int
     Mapper uint8
-    flags6 byte
-    flags7 byte
-    prgRamSize uint8
-    flags9 byte
+    Flags6 byte
+    Flags7 byte
+    PrgRamSize uint8
+    Flags9 byte
 }
 
 var nes = []byte{0x4E, 0x45, 0x53, 0x1A}
 
-func ReadHeader(r io.Reader) (header *ines, err error) {
-    header = new(ines)
-    h := make([]byte, 16)
+func ParseHeader(raw []byte) (header *Header, err error) {
+    header = new(Header)
 
-    _, err = r.Read(h)
-    if err != nil { return }
-
-    if !bytes.Equal(h[:4], nes) {
+    if !bytes.Equal(raw[:4], nes) {
         err = errors.New("iNES header invalid. Is this really an NES ROM?")
     }
 
-    header.PrgRomSize = int(h[4]) * 16384
-    header.ChrRomSize = int(h[5]) * 8192
-
-    header.Mapper = (h[6] >> 4) | (h[7] & 0xF0)
+    header.PrgRomSize = int(raw[4])
+    header.ChrRomSize = int(raw[5])
+    header.Mapper = (raw[6] >> 4) | (raw[7] & 0xF0)
 
     return
 }
