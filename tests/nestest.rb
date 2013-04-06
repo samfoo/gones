@@ -3,7 +3,7 @@
 require 'rainbow'
 
 expected = File.new("assets/nestest.log").readlines.map { |l| l.gsub("\r\n", '')[0..72] }
-actual = `go run src/nestest.go`.split /\n/
+actual = `go run tests/nestest.go`.split /\n/
 
 actual.zip(expected).each_with_index do |(a, e), i|
   if e.nil?
@@ -34,8 +34,9 @@ actual.zip(expected).each_with_index do |(a, e), i|
       puts sprintf("%-5d actual  : %s", i + 1, actual_diff)
       puts "\r\n"
 
-      break
+      exit 1
     end
   end
 end
 
+puts "All systems nominal"

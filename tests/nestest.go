@@ -29,8 +29,8 @@ func main() {
         low := 0x8000 + cpu.Address(i)
         high := 0xc000 + cpu.Address(i)
 
-        proc.Memory.Write(rom.Data[i], low)
-        proc.Memory.Write(rom.Data[i], high)
+        proc.Memory.Write(rom.Banks[0][i], low)
+        proc.Memory.Write(rom.Banks[0][i], high)
     }
 
     proc.PC = 0xc000
