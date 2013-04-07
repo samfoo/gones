@@ -15,7 +15,11 @@ func main() {
         return
     }
 
-    proc := new(cpu.CPU)
+    proc := cpu.NewCPU()
+
+    // Swallow anything to the APU or PPU
+    proc.Memory.Mount(cpu.NewRAM(0x6000), 0x2000, 0x7fff)
+
     proc.Debug = true
     proc.Reset()
 
@@ -26,13 +30,9 @@ func main() {
         return
     }
 
-    for i := 0; i < 0x4000; i++ {
-        low := 0x8000 + cpu.Address(i)
-        high := 0xc000 + cpu.Address(i)
-
-        proc.Memory.Write(rom.Banks[0][i], low)
-        proc.Memory.Write(rom.Banks[0][i], high)
-    }
+    var mapper = new(nes.NROM)
+    mapper.Rom = rom
+    proc.Memory.Mount(mapper, 0x8000, 0xffff)
 
     proc.PC = 0xc000
 
