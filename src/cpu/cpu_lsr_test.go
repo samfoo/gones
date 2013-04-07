@@ -8,7 +8,7 @@ func (p *CPU) lsrAccumulator(a byte) {
 }
 
 func (p *CPU) lsrMemory(a byte) {
-    p.Memory.buffer[0] = a
+    p.Memory.Write(a, 0)
     p.Lsr(0)
 }
 

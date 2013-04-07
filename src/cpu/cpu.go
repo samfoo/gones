@@ -22,6 +22,8 @@ type Op struct {
 func NewCPU() *CPU {
     p := new(CPU)
 
+    p.Memory = *NewMemory()
+
     return p
 }
 

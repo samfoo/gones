@@ -5,7 +5,7 @@ import "testing"
 func lda(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Lda(0)
 
     return p
@@ -14,7 +14,7 @@ func lda(value byte) (*CPU) {
 func ldx(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Ldx(0)
 
     return p
@@ -23,7 +23,7 @@ func ldx(value byte) (*CPU) {
 func ldy(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Ldy(0)
 
     return p

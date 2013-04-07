@@ -5,7 +5,7 @@ import "testing"
 func inc(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Inc(0)
 
     return p

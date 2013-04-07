@@ -49,7 +49,7 @@ func TestAddressModeXPage(t *testing.T) {
                     p.X = 0xff
 
                     // 0xff + 0x0001 == 0x100 which crosses a page boundary
-                    copy(p.Memory.buffer[:], []byte{0x01, 0x00})
+                    p.Memory.Copy([]byte{0x01, 0x00}, 0x0000)
                     p.AbsoluteX()
 
                     return p.cycles
@@ -62,7 +62,7 @@ func TestAddressModeXPage(t *testing.T) {
                     p.Y = 0xff
 
                     // 0xff + 0x0001 == 0x100 which crosses a page boundary
-                    copy(p.Memory.buffer[:], []byte{0x01, 0x00})
+                    p.Memory.Copy([]byte{0x01, 0x00}, 0x0000)
                     p.AbsoluteY()
 
                     return p.cycles
@@ -75,7 +75,7 @@ func TestAddressModeXPage(t *testing.T) {
                     p.Y = 0xff
 
                     // 0xff + 0x0001 == 0x100 which crosses a page boundary
-                    copy(p.Memory.buffer[:], []byte{0x01, 0x02, 0x00})
+                    p.Memory.Copy([]byte{0x01, 0x02, 0x00}, 0x0000)
                     p.IndirectIndexed()
 
                     return p.cycles

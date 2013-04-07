@@ -5,7 +5,7 @@ import "testing"
 func dcp(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Dcp(0)
 
     return p
@@ -15,7 +15,7 @@ func lax(value byte) (*CPU) {
     var p *CPU = NewCPU()
 
     p.A, p.X = 0, 0
-    p.Memory.buffer[0] = value
+    p.Memory.Write(value, 0)
     p.Lax(0)
 
     return p
@@ -25,7 +25,7 @@ func aac(first byte, second byte) (*CPU) {
     var p *CPU = NewCPU()
 
     p.A = first
-    p.Memory.buffer[0] = second
+    p.Memory.Write(second, 0)
     p.Aac(0)
 
     return p

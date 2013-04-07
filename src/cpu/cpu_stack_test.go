@@ -63,7 +63,7 @@ func TestPushingMultipleValues(t *testing.T) {
         t.Errorf("Pushing didn't decrement the stack pointer correctly")
     }
 
-    values := p.Memory.buffer[0x01fb:0x0200]
+    values := p.Memory.Range(0x01fb, 0x0200)
 
     for i := range values {
         if values[i] != 0x04 - byte(i) {

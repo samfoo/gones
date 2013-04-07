@@ -4,7 +4,7 @@ import "testing"
 
 func (p *CPU) andImmediate(first byte, second byte) {
     p.A = first
-    p.Memory.buffer[0] = second
+    p.Memory.Write(second, 0)
     p.And(0)
 }
 

@@ -8,7 +8,7 @@ func (p *CPU) aslAccumulator(a byte) {
 }
 
 func (p *CPU) aslMemory(a byte) {
-    p.Memory.buffer[0] = a
+    p.Memory.Write(a, 0)
     p.Asl(0)
 }
 

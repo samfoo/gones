@@ -19,7 +19,7 @@ func TestJsrStack(t *testing.T) {
     p.PC = 0xbeef
     p.Jsr(0xdead)
 
-    stack := p.Memory.buffer[0x01fe:0x0200]
+    stack := p.Memory.Range(0x01fe, 0x0200)
 
     if stack[0] != 0xee {
         t.Errorf("PC low byte not pushed properly to the stack")

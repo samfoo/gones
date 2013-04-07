@@ -34,7 +34,7 @@ func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) boo
 
 func (p *CPU) execute(op Opcode, arguments []byte) (*CPU) {
     for i := range arguments {
-        p.Memory.buffer[i] = arguments[i]
+        p.Memory.Write(arguments[i], Address(i))
     }
 
     p.Execute(p.Operations()[op])
@@ -78,7 +78,7 @@ func TestIncrementRegistersOpcodes(t *testing.T) {
 
 func TestIncOpcodes(t *testing.T) {
     successful := func(p *CPU) bool {
-        return p.Memory.buffer[0x02] == 0xff
+        return p.Memory.Read(0x0002) == 0xff
     }
 
     tests := map[string]func(*CPU) {
@@ -123,7 +123,7 @@ func TestDecrementRegistersOpcodes(t *testing.T) {
 
 func TestDecOpcodes(t *testing.T) {
     successful := func(p *CPU) bool {
-        return p.Memory.buffer[0x02] == 0xfe
+        return p.Memory.Read(0x0002) == 0xfe
     }
 
     tests := map[string]func(*CPU) {
@@ -272,8 +272,8 @@ func TestClearOpcodes(t *testing.T) {
 
 func TestBrkOpcode(t *testing.T) {
     testOp(t, "Brk implied", func(p *CPU) {
-            p.Memory.buffer[0xfffe] = 0xff
-            p.Memory.buffer[0xffff] = 0xee
+            p.Memory.Write(0xff, 0xfffe)
+            p.Memory.Write(0xee, 0xffff)
             p.execute(0x00, []byte{})
         }, func(p *CPU) bool { return p.PC == 0xeeff })
 }

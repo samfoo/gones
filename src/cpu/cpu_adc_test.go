@@ -4,7 +4,7 @@ import "testing"
 
 func (p *CPU) adc(first byte, second byte) {
     p.A = first
-    p.Memory.buffer[0] = second
+    p.Memory.Write(second, 0)
     p.Adc(0)
 }
 
