@@ -24,6 +24,7 @@ func branchTest(t *testing.T, op Opcode, branch func(*CPU), nobranch func(*CPU))
 
 func testOp(t * testing.T, name string, run func(*CPU), assertion func(*CPU) bool) {
     var p = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
     p.Reset()
     run(p)
 

@@ -4,6 +4,8 @@ import "testing"
 
 func TestBrkStack(t *testing.T) {
     var p *CPU = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
+
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0xbeef
@@ -30,6 +32,8 @@ func TestBrkStack(t *testing.T) {
 
 func TestBrkLoadsPC(t *testing.T) {
     var p *CPU = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
+
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0x0000
@@ -48,6 +52,8 @@ func TestBrkLoadsPC(t *testing.T) {
 
 func TestBrkSetsInterruptDiable(t *testing.T) {
     var p *CPU = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
+
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0x0000

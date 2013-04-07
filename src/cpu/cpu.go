@@ -23,6 +23,7 @@ func NewCPU() *CPU {
     p := new(CPU)
 
     p.Memory = *NewMemory()
+    p.Memory.Mount(NewInternalRAM(), 0x0000, 0x1fff)
 
     return p
 }

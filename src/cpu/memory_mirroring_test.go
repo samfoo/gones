@@ -4,6 +4,7 @@ import "testing"
 
 func TestSystemMemoryIsMirrored(t *testing.T) {
     var r = NewMemory()
+    r.Mount(NewInternalRAM(), 0x0000, 0x1fff)
 
     mirroredPages := []Address { 0x0000, 0x0800, 0x1000, 0x1800 }
 

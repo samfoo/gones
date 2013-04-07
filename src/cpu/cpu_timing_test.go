@@ -9,6 +9,7 @@ type TimingTest struct {
 
 func testTiming(t *testing.T, name string, run (func(*CPU) int), expected int) {
     var p = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
     p.Reset()
 
     actual := run(p)
