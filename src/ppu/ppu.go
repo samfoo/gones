@@ -33,6 +33,17 @@ type Masks struct {
     IntenseBlues bool
 }
 
+func (m *Masks) Set(val byte) {
+    m.Grayscale = (val & 0x01) == 0x01
+    m.ShowBackgroundLeft = (val & 0x02) == 0x02
+    m.ShowSpritesLeft = (val & 0x04) == 0x04
+    m.ShowBackground = (val & 0x08) == 0x08
+    m.ShowSprites = (val & 0x10) == 0x10
+    m.IntenseReds = (val & 0x20) == 0x20
+    m.IntenseGreens = (val & 0x40) == 0x40
+    m.IntenseBlues = (val & 0x80) == 0x80
+}
+
 type PPU struct {
     Ctrl
     Masks

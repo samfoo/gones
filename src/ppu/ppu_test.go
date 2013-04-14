@@ -70,3 +70,41 @@ func TestSetGenerateNMIOnVBlank(t *testing.T) {
     ctrl.Set(0x80)
     assert.Equal(t, ctrl.GenerateNMIOnVBlank, true)
 }
+
+func TestSetMasks(t *testing.T) {
+    m := new(Masks)
+
+
+    assert.False(t, m.Grayscale)
+    m.Set(0x01)
+    assert.True(t, m.Grayscale)
+
+
+    assert.False(t, m.ShowBackgroundLeft)
+    m.Set(0x02)
+    assert.True(t, m.ShowBackgroundLeft)
+
+    assert.False(t, m.ShowSpritesLeft)
+    m.Set(0x04)
+    assert.True(t, m.ShowSpritesLeft)
+
+    assert.False(t, m.ShowBackground)
+    m.Set(0x08)
+    assert.True(t, m.ShowBackground)
+
+    assert.False(t, m.ShowSprites)
+    m.Set(0x10)
+    assert.True(t, m.ShowSprites)
+
+    assert.False(t, m.IntenseReds)
+    m.Set(0x20)
+    assert.True(t, m.IntenseReds)
+
+    assert.False(t, m.IntenseGreens)
+    m.Set(0x40)
+    assert.True(t, m.IntenseGreens)
+
+    assert.False(t, m.IntenseBlues)
+    m.Set(0x80)
+    assert.True(t, m.IntenseBlues)
+}
