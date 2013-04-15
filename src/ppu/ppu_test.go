@@ -176,3 +176,13 @@ func TestPPUWritePPUAddr(t *testing.T) {
 
     assert.Equal(t, p.VRAMAddr, cpu.Address(0xbeef))
 }
+
+func TestPPUWritePPUData(t *testing.T) {
+    p := NewPPU()
+    p.VRAMAddr = 0x0000
+
+    p.Write(0xbe, PPUDATA)
+
+    assert.Equal(t, p.Memory.Read(0x0000), byte(0xbe))
+    assert.Equal(t, p.VRAMAddr, cpu.Address(0x0001))
+}

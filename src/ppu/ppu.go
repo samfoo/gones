@@ -105,5 +105,8 @@ func (p *PPU) Write(val byte, location cpu.Address) {
             // TODO
         case PPUADDR:
             p.SetAddr(val)
+        case PPUDATA:
+            p.Memory.Write(val, p.VRAMAddr)
+            p.VRAMAddr++
     }
 }
