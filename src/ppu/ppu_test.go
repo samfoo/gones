@@ -4,6 +4,7 @@ import (
     "cpu"
     "testing"
     "github.com/stretchrcom/testify/assert"
+    "github.com/stretchrcom/testify/mock"
 )
 
 func TestSetBaseNametableAddress(t *testing.T) {
@@ -115,5 +116,33 @@ func TestSetAddr(t *testing.T) {
     p.SetAddr(0xbe)
     p.SetAddr(0xef)
 
-    assert.Equal(t, p.VRAM, cpu.Address(0xbeef))
+    assert.Equal(t, p.VRAMAddr, cpu.Address(0xbeef))
+}
+
+type MockReg struct {
+    mock.Mock
+}
+
+func (m *MockReg) Set(val byte) {
+    m.Mock.Called(val)
+}
+
+func TestPPUWriteCtrl(t *testing.T) {
+    p := NewPPU()
+    ctrl := new(MockReg)
+    ctrl.On("Set", byte(0xff)).Return(nil)
+    p.Ctrl = ctrl
+
+    p.Write(0xff, PPUCTRL)
+    ctrl.AssertCalled(t, "Set", byte(0xff))
+}
+
+func TestPPUWriteMask(t *testing.T) {
+    p := NewPPU()
+    masks := new(MockReg)
+    masks.On("Set", byte(0xff)).Return(nil)
+    p.Masks = masks
+
+    p.Write(0xff, PPUMASK)
+    masks.AssertCalled(t, "Set", byte(0xff))
 }

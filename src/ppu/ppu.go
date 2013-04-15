@@ -4,6 +4,10 @@ import "cpu"
 
 type Address uint16
 
+type Register interface {
+    Set(byte)
+}
+
 type Ctrl struct {
     BaseNametableAddress Address
     VRAMAddressInc uint8
@@ -45,10 +49,10 @@ func (m *Masks) Set(val byte) {
 }
 
 type PPU struct {
-    Ctrl
-    Masks
+    Ctrl Register
+    Masks Register
 
-    VRAM cpu.Address
+    VRAMAddr cpu.Address
     cpu.Memory
 
     flip bool
@@ -65,9 +69,9 @@ func NewPPU() *PPU {
 
 func (p *PPU) SetAddr(val byte) {
     if !p.flip {
-        p.VRAM = cpu.Address(val) << 8 | (0x00ff & p.VRAM)
+        p.VRAMAddr = cpu.Address(val) << 8 | (0x00ff & p.VRAMAddr)
     } else {
-        p.VRAM = cpu.Address(val) | (0xff00 & p.VRAM)
+        p.VRAMAddr = cpu.Address(val) | (0xff00 & p.VRAMAddr)
     }
 
     p.flip = !p.flip
@@ -84,4 +88,10 @@ const (
 )
 
 func (p *PPU) Write(val byte, location cpu.Address) {
+    switch location {
+        case PPUCTRL:
+            p.Ctrl.Set(val)
+        case PPUMASK:
+            p.Masks.Set(val)
+    }
 }
