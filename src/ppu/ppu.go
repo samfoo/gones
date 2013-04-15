@@ -79,10 +79,16 @@ type PPU struct {
     Ctrl
     Masks
     Scroll
+    cpu.Memory
 }
 
 func NewPPU() *PPU {
-    return new(PPU)
+    p := new(PPU)
+
+    p.Memory = *cpu.NewMemory()
+    p.Memory.Mount(NewInternalRAM(), 0x0000, 0x3fff)
+
+    return p
 }
 
 const (
