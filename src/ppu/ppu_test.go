@@ -154,3 +154,16 @@ func TestPPUWriteOAMAddr(t *testing.T) {
 
     assert.Equal(t, p.OAMAddr, byte(0xff))
 }
+
+func TestPPUWriteOAMData(t *testing.T) {
+    p := NewPPU()
+
+    p.OAMAddr = 0xff
+    p.Write(0xbe, OAMDATA)
+
+    assert.Equal(t, p.OAMRAM[0xff], byte(0xbe))
+    assert.Equal(t, p.OAMAddr, byte(0x00))
+
+    p.Write(0xbe, OAMDATA)
+    assert.Equal(t, p.OAMAddr, byte(0x01))
+}
