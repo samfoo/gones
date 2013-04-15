@@ -71,6 +71,19 @@ func TestSetGenerateNMIOnVBlank(t *testing.T) {
     assert.Equal(t, ctrl.GenerateNMIOnVBlank, true)
 }
 
+func TestSetScroll(t *testing.T) {
+    s := new(Scroll)
+
+    s.Set(0xff)
+    assert.Equal(t, s.X, uint8(0xff))
+
+    s.Set(0xef)
+    assert.Equal(t, s.Y, uint8(0xef))
+
+    s.Set(0x01)
+    assert.Equal(t, s.X, uint8(0x01))
+}
+
 func TestSetMasks(t *testing.T) {
     m := new(Masks)
 
@@ -108,3 +121,4 @@ func TestSetMasks(t *testing.T) {
     m.Set(0x80)
     assert.True(t, m.IntenseBlues)
 }
+

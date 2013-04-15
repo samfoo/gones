@@ -44,9 +44,26 @@ func (m *Masks) Set(val byte) {
     m.IntenseBlues = (val & 0x80) == 0x80
 }
 
+type Scroll struct {
+    X uint8
+    Y uint8
+    flip bool
+}
+
+func (s *Scroll) Set(val uint8) {
+    if !s.flip {
+        s.X = val
+    } else {
+        s.Y = val
+    }
+
+    s.flip = !s.flip
+}
+
 type PPU struct {
     Ctrl
     Masks
+    Scroll
 }
 
 func NewPPU() *PPU {
