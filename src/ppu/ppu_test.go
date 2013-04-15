@@ -72,19 +72,6 @@ func TestSetGenerateNMIOnVBlank(t *testing.T) {
     assert.Equal(t, ctrl.GenerateNMIOnVBlank, true)
 }
 
-func TestSetScroll(t *testing.T) {
-    s := new(Scroll)
-
-    s.Set(0xff)
-    assert.Equal(t, s.X, uint8(0xff))
-
-    s.Set(0xef)
-    assert.Equal(t, s.Y, uint8(0xef))
-
-    s.Set(0x01)
-    assert.Equal(t, s.X, uint8(0x01))
-}
-
 func TestSetMasks(t *testing.T) {
     m := new(Masks)
 
@@ -123,10 +110,10 @@ func TestSetMasks(t *testing.T) {
 }
 
 func TestSetAddr(t *testing.T) {
-    a := new(Addr)
+    p := NewPPU()
 
-    a.Set(0xbe)
-    a.Set(0xef)
+    p.SetAddr(0xbe)
+    p.SetAddr(0xef)
 
-    assert.Equal(t, a.Location, cpu.Address(0xbeef))
+    assert.Equal(t, p.VRAM, cpu.Address(0xbeef))
 }

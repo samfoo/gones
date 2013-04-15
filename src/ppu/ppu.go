@@ -44,42 +44,14 @@ func (m *Masks) Set(val byte) {
     m.IntenseBlues = (val & 0x80) == 0x80
 }
 
-type Scroll struct {
-    X uint8
-    Y uint8
-    flip bool
-}
-
-func (s *Scroll) Set(val uint8) {
-    if !s.flip {
-        s.X = val
-    } else {
-        s.Y = val
-    }
-
-    s.flip = !s.flip
-}
-
-type Addr struct {
-    Location cpu.Address
-    flip bool
-}
-
-func (a *Addr) Set(val byte) {
-    if !a.flip {
-        a.Location = cpu.Address(val) << 8 | (0x00ff & a.Location)
-    } else {
-        a.Location = cpu.Address(val) | (0xff00 & a.Location)
-    }
-
-    a.flip = !a.flip
-}
-
 type PPU struct {
     Ctrl
     Masks
-    Scroll
+
+    VRAM cpu.Address
     cpu.Memory
+
+    flip bool
 }
 
 func NewPPU() *PPU {
@@ -89,6 +61,16 @@ func NewPPU() *PPU {
     p.Memory.Mount(NewInternalRAM(), 0x0000, 0x3fff)
 
     return p
+}
+
+func (p *PPU) SetAddr(val byte) {
+    if !p.flip {
+        p.VRAM = cpu.Address(val) << 8 | (0x00ff & p.VRAM)
+    } else {
+        p.VRAM = cpu.Address(val) | (0xff00 & p.VRAM)
+    }
+
+    p.flip = !p.flip
 }
 
 const (
