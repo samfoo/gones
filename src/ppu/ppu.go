@@ -101,5 +101,9 @@ func (p *PPU) Write(val byte, location cpu.Address) {
         case OAMDATA:
             p.OAMRAM[p.OAMAddr] = val
             p.OAMAddr++
+        case PPUSCROLL:
+            // TODO
+        case PPUADDR:
+            p.SetAddr(val)
     }
 }

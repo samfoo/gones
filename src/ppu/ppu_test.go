@@ -167,3 +167,12 @@ func TestPPUWriteOAMData(t *testing.T) {
     p.Write(0xbe, OAMDATA)
     assert.Equal(t, p.OAMAddr, byte(0x01))
 }
+
+func TestPPUWritePPUAddr(t *testing.T) {
+    p := NewPPU()
+
+    p.Write(0xbe, PPUADDR)
+    p.Write(0xef, PPUADDR)
+
+    assert.Equal(t, p.VRAMAddr, cpu.Address(0xbeef))
+}
