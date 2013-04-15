@@ -60,6 +60,21 @@ func (s *Scroll) Set(val uint8) {
     s.flip = !s.flip
 }
 
+type Addr struct {
+    Location cpu.Address
+    flip bool
+}
+
+func (a *Addr) Set(val byte) {
+    if !a.flip {
+        a.Location = cpu.Address(val) << 8 | (0x00ff & a.Location)
+    } else {
+        a.Location = cpu.Address(val) | (0xff00 & a.Location)
+    }
+
+    a.flip = !a.flip
+}
+
 type PPU struct {
     Ctrl
     Masks

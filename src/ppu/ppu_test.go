@@ -1,6 +1,7 @@
 package ppu
 
 import (
+    "cpu"
     "testing"
     "github.com/stretchrcom/testify/assert"
 )
@@ -87,7 +88,6 @@ func TestSetScroll(t *testing.T) {
 func TestSetMasks(t *testing.T) {
     m := new(Masks)
 
-
     assert.False(t, m.Grayscale)
     m.Set(0x01)
     assert.True(t, m.Grayscale)
@@ -122,3 +122,11 @@ func TestSetMasks(t *testing.T) {
     assert.True(t, m.IntenseBlues)
 }
 
+func TestSetAddr(t *testing.T) {
+    a := new(Addr)
+
+    a.Set(0xbe)
+    a.Set(0xef)
+
+    assert.Equal(t, a.Location, cpu.Address(0xbeef))
+}
