@@ -53,6 +53,7 @@ type PPU struct {
     Masks Register
 
     VRAMAddr cpu.Address
+    OAMAddr uint8
     cpu.Memory
 
     flip bool
@@ -93,5 +94,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
             p.Ctrl.Set(val)
         case PPUMASK:
             p.Masks.Set(val)
+        case OAMADDR:
+            p.OAMAddr = val
     }
 }

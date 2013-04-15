@@ -146,3 +146,11 @@ func TestPPUWriteMask(t *testing.T) {
     p.Write(0xff, PPUMASK)
     masks.AssertCalled(t, "Set", byte(0xff))
 }
+
+func TestPPUWriteOAMAddr(t *testing.T) {
+    p := NewPPU()
+
+    p.Write(0xff, OAMADDR)
+
+    assert.Equal(t, p.OAMAddr, byte(0xff))
+}
