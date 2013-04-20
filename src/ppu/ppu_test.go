@@ -112,6 +112,7 @@ func TestSetMasks(t *testing.T) {
 func TestWriteVRAMAddr(t *testing.T) {
     p := NewPPU()
 
+    p.AddressLatch = true
     p.WriteVRAMAddr(0xbe)
     p.WriteVRAMAddr(0xef)
 
@@ -158,6 +159,7 @@ func TestPPUWriteOAMData(t *testing.T) {
 func TestPPUWritePPUAddr(t *testing.T) {
     p := NewPPU()
 
+    p.AddressLatch = true
     p.Write(0xbe, PPUADDR)
     p.Write(0xef, PPUADDR)
 

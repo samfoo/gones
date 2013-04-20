@@ -80,6 +80,8 @@ type PPU struct {
     Display *Display
 
     AddressLatch bool
+
+    vram *VRAM
 }
 
 func NewPPU() *PPU {
@@ -92,7 +94,7 @@ func NewPPU() *PPU {
 }
 
 func (p *PPU) WriteVRAMAddr(val byte) {
-    if !p.AddressLatch {
+    if p.AddressLatch {
         p.VRAMAddr = cpu.Address(val) << 8 | (0x00ff & p.VRAMAddr)
     } else {
         p.VRAMAddr = cpu.Address(val) | (0xff00 & p.VRAMAddr)
