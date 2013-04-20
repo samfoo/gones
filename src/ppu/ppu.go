@@ -53,10 +53,12 @@ type PPU struct {
     Masks Register
 
     VRAMAddr cpu.Address
-    OAMAddr uint8
 
-    cpu.Memory
+    OAMAddr uint8
     OAMRAM [0x100]byte
+
+    Memory *cpu.Memory
+    Display *Display
 
     flip bool
 }
@@ -64,7 +66,7 @@ type PPU struct {
 func NewPPU() *PPU {
     p := new(PPU)
 
-    p.Memory = *cpu.NewMemory()
+    p.Memory = cpu.NewMemory()
     p.Memory.Mount(NewInternalRAM(), 0x0000, 0x3fff)
 
     return p
