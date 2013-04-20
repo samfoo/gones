@@ -8,6 +8,7 @@ import (
 )
 
 type ROM struct {
+    Header *Header
     Banks [][]byte
 
     data []byte
@@ -27,12 +28,11 @@ func ReadROM(r io.Reader) (rom *ROM, err error) {
 
     rom.data = raw[16:]
 
-    var header *Header
-    header, err = ParseHeader(raw)
+    rom.Header, err = ParseHeader(raw)
     if err != nil { return }
 
-    rom.Banks = make([][]byte, header.PrgRomSize)
-    for i := 0; i < header.PrgRomSize; i++ {
+    rom.Banks = make([][]byte, rom.Header.PrgRomSize)
+    for i := 0; i < rom.Header.PrgRomSize; i++ {
         rom.Banks[i] = rom.data[PrgBankSize*i:PrgBankSize*(i+1)]
     }
 
