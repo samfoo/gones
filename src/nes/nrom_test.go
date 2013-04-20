@@ -8,10 +8,10 @@ import (
 func TestNROM128MirrorsMemory(t *testing.T) {
     rom := new(ROM)
 
-    rom.Banks = make([][]byte, 1)
-    rom.Banks[0] = make([]byte, 16 * 0x4000)
+    rom.PrgBanks = make([][]byte, 1)
+    rom.PrgBanks[0] = make([]byte, 16 * 0x4000)
 
-    rom.Banks[0][0] = 0xbe
+    rom.PrgBanks[0][0] = 0xbe
 
     mapper := NROM { rom }
 
@@ -22,12 +22,12 @@ func TestNROM128MirrorsMemory(t *testing.T) {
 func TestNROM256DoesntMirror(t *testing.T) {
     rom := new(ROM)
 
-    rom.Banks = make([][]byte, 2)
-    rom.Banks[0] = make([]byte, 16 * 0x4000)
-    rom.Banks[1] = make([]byte, 16 * 0x4000)
+    rom.PrgBanks = make([][]byte, 2)
+    rom.PrgBanks[0] = make([]byte, 16 * 0x4000)
+    rom.PrgBanks[1] = make([]byte, 16 * 0x4000)
 
-    rom.Banks[0][0] = 0xbe
-    rom.Banks[1][0] = 0xef
+    rom.PrgBanks[0][0] = 0xbe
+    rom.PrgBanks[1][0] = 0xef
 
     mapper := NROM { rom }
 

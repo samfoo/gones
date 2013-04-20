@@ -9,14 +9,15 @@ import (
 
 type ROM struct {
     Header *Header
-    Banks [][]byte
+    PrgBanks [][]byte
+    ChrBanks [][]byte
 
     data []byte
 }
 
 const (
     PrgBankSize = 0x4000
-    ChrBankSize = 0x2000
+    ChrBankSize = 0x1000
 )
 
 func ReadROM(r io.Reader) (rom *ROM, err error) {
@@ -31,9 +32,17 @@ func ReadROM(r io.Reader) (rom *ROM, err error) {
     rom.Header, err = ParseHeader(raw)
     if err != nil { return }
 
-    rom.Banks = make([][]byte, rom.Header.PrgRomSize)
+    rom.PrgBanks = make([][]byte, rom.Header.PrgRomSize)
     for i := 0; i < rom.Header.PrgRomSize; i++ {
-        rom.Banks[i] = rom.data[PrgBankSize*i:PrgBankSize*(i+1)]
+        rom.PrgBanks[i] = rom.data[PrgBankSize*i:PrgBankSize*(i+1)]
+    }
+
+    rom.ChrBanks = make([][]byte, rom.Header.ChrRomSize*2)
+    for i := 0; i < rom.Header.ChrRomSize*2; i++ {
+        offset := PrgBankSize * rom.Header.PrgRomSize
+        start := offset + ChrBankSize * i
+        end := offset + ChrBankSize * (i + 1)
+        rom.ChrBanks[i] = rom.data[start:end]
     }
 
     return
