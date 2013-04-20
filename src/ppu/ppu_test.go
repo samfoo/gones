@@ -203,6 +203,14 @@ func TestStatusSerializesFlags(t *testing.T) {
     assert.Equal(t, s.Value(), byte(0x80))
 }
 
+func TestReadingStatusSetsTheAddressLatch(t *testing.T) {
+    p := NewPPU()
+
+    assert.Equal(t, p.AddressLatch, false)
+    p.Read(PPUSTATUS)
+    assert.Equal(t, p.AddressLatch, true)
+}
+
 func TestPPUReadAt2002ReadsStatus(t *testing.T) {
     p := NewPPU()
 

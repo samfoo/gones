@@ -78,7 +78,7 @@ type PPU struct {
     Memory *cpu.Memory
     Display *Display
 
-    flip bool
+    AddressLatch bool
 }
 
 func NewPPU() *PPU {
@@ -91,13 +91,13 @@ func NewPPU() *PPU {
 }
 
 func (p *PPU) SetAddr(val byte) {
-    if !p.flip {
+    if !p.AddressLatch {
         p.VRAMAddr = cpu.Address(val) << 8 | (0x00ff & p.VRAMAddr)
     } else {
         p.VRAMAddr = cpu.Address(val) | (0xff00 & p.VRAMAddr)
     }
 
-    p.flip = !p.flip
+    p.AddressLatch = !p.AddressLatch
 }
 
 const (
@@ -135,6 +135,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
 func (p *PPU) Read(location cpu.Address) byte {
     switch location {
         case PPUSTATUS:
+            p.AddressLatch = true
             return p.Status.Value()
         default:
             return 0
