@@ -4,10 +4,6 @@ import "cpu"
 
 type Address uint16
 
-type Register interface {
-    Set(byte)
-}
-
 type Ctrl struct {
     BaseNametableAddress Address
     VRAMAddressInc uint8
@@ -16,6 +12,11 @@ type Ctrl struct {
     SpriteSize uint8
     GenerateNMIOnVBlank bool
 }
+
+const (
+    VRAM_INC_ACROSS = uint8(0x00)
+    VRAM_INC_DOWN = uint8(0x01)
+)
 
 func (c *Ctrl) Set(val byte) {
     c.BaseNametableAddress = 0x2000 + 0x400 * Address(val & 0x03)
@@ -65,8 +66,8 @@ func (s *Status) Value() byte {
 }
 
 type PPU struct {
-    Ctrl Register
-    Masks Register
+    Ctrl
+    Masks
 
     Status
 
@@ -90,7 +91,7 @@ func NewPPU() *PPU {
     return p
 }
 
-func (p *PPU) SetAddr(val byte) {
+func (p *PPU) WriteVRAMAddr(val byte) {
     if !p.AddressLatch {
         p.VRAMAddr = cpu.Address(val) << 8 | (0x00ff & p.VRAMAddr)
     } else {
@@ -98,6 +99,18 @@ func (p *PPU) SetAddr(val byte) {
     }
 
     p.AddressLatch = !p.AddressLatch
+}
+
+func (p *PPU) ReadData() byte {
+    value := p.Memory.Read(p.VRAMAddr)
+
+    if p.Ctrl.VRAMAddressInc == VRAM_INC_ACROSS {
+        p.VRAMAddr += 1
+    } else {
+        p.VRAMAddr += 32
+    }
+
+    return value
 }
 
 const (
@@ -125,7 +138,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
         case PPUSCROLL:
             // TODO
         case PPUADDR:
-            p.SetAddr(val)
+            p.WriteVRAMAddr(val)
         case PPUDATA:
             p.Memory.Write(val, p.VRAMAddr)
             p.VRAMAddr++
@@ -137,6 +150,10 @@ func (p *PPU) Read(location cpu.Address) byte {
         case PPUSTATUS:
             p.AddressLatch = true
             return p.Status.Value()
+        case OAMDATA:
+            return p.OAMRAM[p.OAMAddr]
+        case PPUDATA:
+            return p.ReadData()
         default:
             return 0
     }

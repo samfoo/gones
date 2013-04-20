@@ -4,7 +4,6 @@ import (
     "cpu"
     "testing"
     "github.com/stretchrcom/testify/assert"
-    "github.com/stretchrcom/testify/mock"
 )
 
 func TestSetBaseNametableAddress(t *testing.T) {
@@ -110,41 +109,29 @@ func TestSetMasks(t *testing.T) {
     assert.True(t, m.IntenseBlues)
 }
 
-func TestSetAddr(t *testing.T) {
+func TestWriteVRAMAddr(t *testing.T) {
     p := NewPPU()
 
-    p.SetAddr(0xbe)
-    p.SetAddr(0xef)
+    p.WriteVRAMAddr(0xbe)
+    p.WriteVRAMAddr(0xef)
 
     assert.Equal(t, p.VRAMAddr, cpu.Address(0xbeef))
 }
 
-type MockReg struct {
-    mock.Mock
-}
-
-func (m *MockReg) Set(val byte) {
-    m.Mock.Called(val)
-}
-
 func TestPPUWriteCtrl(t *testing.T) {
     p := NewPPU()
-    ctrl := new(MockReg)
-    ctrl.On("Set", byte(0xff)).Return(nil)
-    p.Ctrl = ctrl
 
+    assert.Equal(t, p.Ctrl.VRAMAddressInc, uint8(VRAM_INC_ACROSS))
     p.Write(0xff, PPUCTRL)
-    ctrl.AssertCalled(t, "Set", byte(0xff))
+    assert.Equal(t, p.Ctrl.VRAMAddressInc, uint8(0x01))
 }
 
 func TestPPUWriteMask(t *testing.T) {
     p := NewPPU()
-    masks := new(MockReg)
-    masks.On("Set", byte(0xff)).Return(nil)
-    p.Masks = masks
 
+    assert.Equal(t, p.Masks.Grayscale, false)
     p.Write(0xff, PPUMASK)
-    masks.AssertCalled(t, "Set", byte(0xff))
+    assert.Equal(t, p.Masks.Grayscale, true)
 }
 
 func TestPPUWriteOAMAddr(t *testing.T) {
@@ -216,4 +203,39 @@ func TestPPUReadAt2002ReadsStatus(t *testing.T) {
 
     p.Status.SpriteOverflow = true
     assert.Equal(t, p.Read(PPUSTATUS), byte(0x20))
+}
+
+func TestPPUReadAt2004ReadsOAMData(t *testing.T) {
+    p := NewPPU()
+
+    p.OAMAddr = 0x00
+    p.OAMRAM[p.OAMAddr] = 0xbe
+
+    assert.Equal(t, p.Read(OAMDATA), byte(0xbe))
+    assert.Equal(t, p.OAMAddr, byte(0x00))
+}
+
+func TestPPUReadAt2007ReadsData(t *testing.T) {
+    p := NewPPU()
+
+    p.VRAMAddr = cpu.Address(0x0000)
+    p.Memory.Write(0xbe, p.VRAMAddr)
+
+    assert.Equal(t, p.Read(PPUDATA), byte(0xbe))
+}
+
+func TestPPUDATAReadIncrementsVRAMAddrCorrectly(t *testing.T) {
+    p := NewPPU()
+
+    p.VRAMAddr = cpu.Address(0x0000)
+    p.Ctrl.VRAMAddressInc = VRAM_INC_ACROSS
+    p.Read(PPUDATA)
+
+    assert.Equal(t, p.VRAMAddr, cpu.Address(0x0001))
+
+    p.VRAMAddr = cpu.Address(0x0000)
+    p.Ctrl.VRAMAddressInc = VRAM_INC_DOWN
+    p.Read(PPUDATA)
+
+    assert.Equal(t, p.VRAMAddr, cpu.Address(0x0020))
 }
