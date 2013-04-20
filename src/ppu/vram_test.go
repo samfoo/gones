@@ -7,7 +7,7 @@ import (
 )
 
 func TestNormalizeMirrorsNametables(t *testing.T) {
-    ram := new(InternalRAM)
+    ram := new(VRAM)
 
     assert.Equal(t, ram.normalize(0x3000), cpu.Address(0x2000))
     assert.Equal(t, ram.normalize(0x31f0), cpu.Address(0x21f0))
@@ -15,7 +15,7 @@ func TestNormalizeMirrorsNametables(t *testing.T) {
 }
 
 func TestNormalizeMirrorsPaletteIndexes(t *testing.T) {
-    ram := new(InternalRAM)
+    ram := new(VRAM)
 
     assert.Equal(t, ram.normalize(0x3f20), cpu.Address(0x3f00))
     assert.Equal(t, ram.normalize(0x3f40), cpu.Address(0x3f00))
