@@ -186,3 +186,26 @@ func TestPPUWritePPUData(t *testing.T) {
     assert.Equal(t, p.Memory.Read(0x0000), byte(0xbe))
     assert.Equal(t, p.VRAMAddr, cpu.Address(0x0001))
 }
+
+func TestStatusSerializesFlags(t *testing.T) {
+    var s = new(Status)
+    assert.Equal(t, s.Value(), byte(0x00))
+
+    s.SpriteOverflow = true
+    assert.Equal(t, s.Value(), byte(0x20))
+
+    s = new(Status)
+    s.Sprite0Hit = true
+    assert.Equal(t, s.Value(), byte(0x40))
+
+    s = new(Status)
+    s.VBlankStarted = true
+    assert.Equal(t, s.Value(), byte(0x80))
+}
+
+func TestPPUReadAt2002ReadsStatus(t *testing.T) {
+    p := NewPPU()
+
+    p.Status.SpriteOverflow = true
+    assert.Equal(t, p.Read(PPUSTATUS), byte(0x20))
+}

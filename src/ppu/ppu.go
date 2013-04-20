@@ -48,9 +48,27 @@ func (m *Masks) Set(val byte) {
     m.IntenseBlues = (val & 0x80) == 0x80
 }
 
+type Status struct {
+    SpriteOverflow bool
+    Sprite0Hit bool
+    VBlankStarted bool
+}
+
+func (s *Status) Value() byte {
+    var value = byte(0x00)
+
+    if s.SpriteOverflow { value |= 0x20 }
+    if s.Sprite0Hit { value |= 0x40 }
+    if s.VBlankStarted { value |= 0x80 }
+
+    return value
+}
+
 type PPU struct {
     Ctrl Register
     Masks Register
+
+    Status
 
     VRAMAddr cpu.Address
 
@@ -85,6 +103,7 @@ func (p *PPU) SetAddr(val byte) {
 const (
     PPUCTRL = 0x0000
     PPUMASK = 0x0001
+    PPUSTATUS = 0x0002
     OAMADDR = 0x0003
     OAMDATA = 0x0004
     PPUSCROLL = 0x0005
@@ -114,6 +133,10 @@ func (p *PPU) Write(val byte, location cpu.Address) {
 }
 
 func (p *PPU) Read(location cpu.Address) byte {
-    // TODO
-    return 0x00
+    switch location {
+        case PPUSTATUS:
+            return p.Status.Value()
+        default:
+            return 0
+    }
 }
