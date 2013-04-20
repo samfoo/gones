@@ -110,3 +110,8 @@ func (p *PPU) Write(val byte, location cpu.Address) {
             p.VRAMAddr++
     }
 }
+
+func (p *PPU) Read(location cpu.Address) byte {
+    // TODO
+    return 0x00
+}
