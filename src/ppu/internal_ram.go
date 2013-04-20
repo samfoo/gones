@@ -15,8 +15,13 @@ func NewInternalRAM() *InternalRAM {
 }
 
 func (r *InternalRAM) normalize(location cpu.Address) cpu.Address {
-    // TODO: Mirroing of 3000-3f00 <-> 2000-2EFF
-    return location
+    if location >= 0x3000 && location < 0x3f00 {
+        return location & 0x2fff
+    } else if location >= 0x3f20 && location < 0x4000 {
+        return location & 0x3f1f
+    } else {
+        return location
+    }
 }
 
 func (r *InternalRAM) Write(value byte, location cpu.Address) {
