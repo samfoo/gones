@@ -5,39 +5,35 @@ import (
     "os"
     "log"
     "fmt"
-    "unsafe"
+    "github.com/banthar/gl"
     "github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
 )
 
 func InitVideo() *sdl.Surface {
     sdl.Init(sdl.INIT_VIDEO)
-    screen := sdl.SetVideoMode(256, 256, 32, sdl.SWSURFACE)
+    screen := sdl.SetVideoMode(512, 512, 32, sdl.OPENGL)
     if screen == nil {
-      log.Fatal(sdl.GetError())
+        log.Fatal(sdl.GetError())
     }
+
+    if gl.Init() != 0 {
+        log.Fatal(sdl.GetError())
+    }
+
+    gl.Enable(gl.TEXTURE_2D)
+
+    gl.Viewport(0, 0, 512, 512)
+    gl.MatrixMode(gl.PROJECTION)
+    gl.LoadIdentity()
+    gl.Ortho(-1, 1, -1, 1, -1, 1)
+    gl.MatrixMode(gl.MODELVIEW)
+    gl.LoadIdentity()
+    gl.Disable(gl.DEPTH_TEST)
 
     return screen
 }
 
-func DrawPoint(x int32, y int32, value uint32, screen *sdl.Surface) {
-  var pixel = uintptr(screen.Pixels)
-  pixel += (uintptr)((y*screen.W)+x) * unsafe.Sizeof(value)
-
-  var pu = unsafe.Pointer(pixel)
-  var pp *uint32
-  pp = (*uint32)(pu)
-  *pp = value
-}
-
-const (
-    WHITE = uint32(0xffffff)
-    RED = uint32(0xff0000)
-    GREEN = uint32(0x00ff00)
-    BLUE = uint32(0x0000ff)
-)
-
-
-func DrawTile(tile []byte, x int, y int, screen *sdl.Surface) {
+func RenderTile(tile []byte, x int, y int, frame []byte) {
     first := tile[:8]
     second := tile[8:]
 
@@ -46,38 +42,42 @@ func DrawTile(tile []byte, x int, y int, screen *sdl.Surface) {
         for j:=0; j < 8; j++ {
             mask := byte(0x80 >> uint(j))
 
-            var color = WHITE
+            offset := ((y+i) * 256 + x + j) * 3
             switch {
                 case f & s & mask == mask:
-                    fmt.Printf("3")
-                    color = BLUE
+                    frame[offset] = 0x00
+                    frame[offset+1] = 0x00
+                    frame[offset+2] = 0xff
                 case f & mask == mask:
-                    fmt.Printf("1")
-                    color = RED
+                    frame[offset] = 0xff
+                    frame[offset+1] = 0x00
+                    frame[offset+2] = 0x00
                 case s & mask == mask:
-                    fmt.Printf("2")
-                    color = GREEN
+                    frame[offset] = 0x00
+                    frame[offset+1] = 0xff
+                    frame[offset+2] = 0x00
                 default:
-                    fmt.Printf(".")
+                    frame[offset] = 0xff
+                    frame[offset+1] = 0xff
+                    frame[offset+2] = 0xff
             }
-
-            DrawPoint(int32(x+j-1), int32(y+i), color, screen)
         }
-        fmt.Printf("\n")
     }
-    fmt.Printf("========")
 }
 
-func DrawPatternTables(table []byte, screen *sdl.Surface) {
+func RenderPatternTables(table []byte) []byte {
+    frame := make([]byte, 256 * 256 * 3)
+
     for i:=0; i < 0x1000; i+=16 {
         tile := table[i:i+16]
 
-        fmt.Printf("===> %#0x\n", i)
         x_index := (i / 16) % 32
         y_index := (i / 16 / 32)
 
-        DrawTile(tile, x_index * 8, y_index * 8, screen)
+        RenderTile(tile, x_index * 8, y_index * 8, frame)
     }
+
+    return frame
 }
 
 func main() {
@@ -99,13 +99,33 @@ func main() {
     fmt.Printf("first bank: %d\n", len(rom.ChrBanks[0]))
     fmt.Printf("second bank: %d\n", len(rom.ChrBanks[1]))
 
-    screen := InitVideo()
+    InitVideo()
+    texture := gl.GenTexture()
 
-    /*DrawPatternTables(rom.ChrBanks[0], screen)*/
-    DrawPatternTables(rom.ChrBanks[1], screen)
-    screen.Flip()
+    /*frame := RenderPatternTables(rom.ChrBanks[0])*/
+    frame := RenderPatternTables(rom.ChrBanks[1])
 
-    // Next step until the tests are finished.
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    texture.Bind(gl.TEXTURE_2D)
+
+    gl.TexImage2D(gl.TEXTURE_2D, 0, 3, 256, 256, 0, gl.RGB, gl.UNSIGNED_BYTE, frame)
+
+    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+
+    gl.Begin(gl.QUADS)
+    gl.TexCoord2f(0.0, 1.0)
+    gl.Vertex3f(-1.0, -1.0, 0.0)
+    gl.TexCoord2f(1.0, 1.0)
+    gl.Vertex3f(1.0, -1.0, 0.0)
+    gl.TexCoord2f(1.0, 0.0)
+    gl.Vertex3f(1.0, 1.0, 0.0)
+    gl.TexCoord2f(0.0, 0.0)
+    gl.Vertex3f(-1.0, 1.0, 0.0)
+    gl.End()
+
+    sdl.GL_SwapBuffers()
+
     for {
     }
 }
