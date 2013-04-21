@@ -5,33 +5,10 @@ import (
     "os"
     "log"
     "fmt"
-    "github.com/banthar/gl"
-    "github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
+    "video"
+    "time"
+    "runtime"
 )
-
-func InitVideo() *sdl.Surface {
-    sdl.Init(sdl.INIT_VIDEO)
-    screen := sdl.SetVideoMode(512, 512, 32, sdl.OPENGL)
-    if screen == nil {
-        log.Fatal(sdl.GetError())
-    }
-
-    if gl.Init() != 0 {
-        log.Fatal(sdl.GetError())
-    }
-
-    gl.Enable(gl.TEXTURE_2D)
-
-    gl.Viewport(0, 0, 512, 512)
-    gl.MatrixMode(gl.PROJECTION)
-    gl.LoadIdentity()
-    gl.Ortho(-1, 1, -1, 1, -1, 1)
-    gl.MatrixMode(gl.MODELVIEW)
-    gl.LoadIdentity()
-    gl.Disable(gl.DEPTH_TEST)
-
-    return screen
-}
 
 func RenderTile(tile []byte, x int, y int, frame []byte) {
     first := tile[:8]
@@ -99,34 +76,29 @@ func main() {
     fmt.Printf("first bank: %d\n", len(rom.ChrBanks[0]))
     fmt.Printf("second bank: %d\n", len(rom.ChrBanks[1]))
 
-    InitVideo()
-    texture := gl.GenTexture()
+    screen := video.NewVideo()
+    screen.Init(1024, 1024)
 
-    /*frame := RenderPatternTables(rom.ChrBanks[0])*/
-    frame := RenderPatternTables(rom.ChrBanks[1])
+    go func() {
+        for i:=0;;i++ {
+            var buffer []byte
+            if i % 2 == 0 {
+                buffer = RenderPatternTables(rom.ChrBanks[0])
+            } else {
+                buffer = RenderPatternTables(rom.ChrBanks[1])
+            }
 
-    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    texture.Bind(gl.TEXTURE_2D)
+            frame := new(video.Frame)
+            frame.Data = buffer
+            frame.Width = 256
+            frame.Height = 256
 
-    gl.TexImage2D(gl.TEXTURE_2D, 0, 3, 256, 256, 0, gl.RGB, gl.UNSIGNED_BYTE, frame)
+            screen.Frames <- frame
+            time.Sleep(1000 * time.Millisecond)
+        }
+    }()
 
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-
-    gl.Begin(gl.QUADS)
-    gl.TexCoord2f(0.0, 1.0)
-    gl.Vertex3f(-1.0, -1.0, 0.0)
-    gl.TexCoord2f(1.0, 1.0)
-    gl.Vertex3f(1.0, -1.0, 0.0)
-    gl.TexCoord2f(1.0, 0.0)
-    gl.Vertex3f(1.0, 1.0, 0.0)
-    gl.TexCoord2f(0.0, 0.0)
-    gl.Vertex3f(-1.0, 1.0, 0.0)
-    gl.End()
-
-    sdl.GL_SwapBuffers()
-
-    for {
-    }
+    runtime.LockOSThread()
+    screen.Loop()
 }
 
