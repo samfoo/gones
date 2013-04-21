@@ -7,7 +7,6 @@ import (
     "fmt"
     "video"
     "time"
-    "runtime"
 )
 
 func RenderTile(tile []byte, x int, y int, frame []byte) {
@@ -77,7 +76,7 @@ func main() {
     fmt.Printf("second bank: %d\n", len(rom.ChrBanks[1]))
 
     screen := video.NewVideo()
-    screen.Init(1024, 1024)
+    screen.Init(512, 512)
 
     go func() {
         for i:=0;;i++ {
@@ -94,11 +93,11 @@ func main() {
             frame.Height = 256
 
             screen.Frames <- frame
+
             time.Sleep(1000 * time.Millisecond)
         }
     }()
 
-    runtime.LockOSThread()
     screen.Loop()
 }
 

@@ -2,8 +2,9 @@ package video
 
 import (
     "log"
+    "runtime"
     "github.com/go-gl/gl"
-    "github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
+    "github.com/go-gl/glfw"
 )
 
 type Frame struct {
@@ -16,10 +17,10 @@ type Video struct {
     Width int
     Height int
 
-    Screen *sdl.Surface
     Texture gl.Texture
 
     Frames chan *Frame
+    frame *Frame
 }
 
 func NewVideo() *Video {
@@ -30,29 +31,8 @@ func NewVideo() *Video {
     return v
 }
 
-func (v *Video) HandleResize() {
-    for {
-        select {
-            case e := <-sdl.Events:
-                switch data := e.(type) {
-                    case sdl.ResizeEvent:
-                        v.Resize(int(data.W), int(data.H))
-                }
-        }
-    }
-}
-
-func (v *Video) Resize(w int, h int) {
-    v.Screen = sdl.SetVideoMode(w, h, 32, sdl.OPENGL)
-
-    gl.Viewport(0, 0, w, h)
-    gl.MatrixMode(gl.PROJECTION)
-    gl.LoadIdentity()
-    gl.Ortho(-1, 1, -1, 1, -1, 1)
-}
-
 func (v *Video) Render(frame []byte, frame_w int, frame_h int) {
-    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.Clear(gl.COLOR_BUFFER_BIT)
     v.Texture.Bind(gl.TEXTURE_2D)
 
     gl.TexImage2D(gl.TEXTURE_2D, 0, 3, frame_w, frame_h, 0, gl.RGB, gl.UNSIGNED_BYTE, frame)
@@ -71,32 +51,54 @@ func (v *Video) Render(frame []byte, frame_w int, frame_h int) {
     gl.Vertex3f(-1.0, 1.0, 0.0)
     gl.End()
 
-    sdl.GL_SwapBuffers()
+    glfw.SwapBuffers()
 }
 
 func (v *Video) Loop() {
-    for {
-        select {
-            case frame := <-v.Frames:
-                v.Render(frame.Data, frame.Width, frame.Height)
+    go func(c chan *Frame) {
+        for {
+            frame := <-c
+            v.frame = frame
         }
+    }(v.Frames)
+
+    for glfw.WindowParam(glfw.Opened) == gl.TRUE {
+        if v.frame != nil {
+            v.Render(v.frame.Data, v.frame.Width, v.frame.Height)
+        }
+        runtime.Gosched()
     }
+
+    glfw.Terminate()
+}
+
+func resize(w int, h int) {
+    gl.Viewport(0, 0, w, h)
+    gl.MatrixMode(gl.PROJECTION)
+    gl.LoadIdentity()
+    gl.Ortho(-1, 1, -1, 1, -1, 1)
 }
 
 func (v *Video) Init(w int, h int) {
-    sdl.Init(sdl.INIT_VIDEO)
-    v.Screen = sdl.SetVideoMode(w, h, 32, sdl.OPENGL)
-    if v.Screen == nil {
-        log.Fatal(sdl.GetError())
+    var err error
+    if err = glfw.Init(); err != nil {
+        log.Fatal(err)
+    }
+
+    if err = glfw.OpenWindow(w, h, 8, 8, 8, 0, 24, 0, glfw.Windowed); err != nil {
+        log.Fatal(err)
     }
 
     if gl.Init() != 0 {
-        log.Fatal(sdl.GetError())
+        log.Fatal("ummm... hmmm")
     }
+
+    glfw.SetWindowSizeCallback(resize)
 
     gl.Enable(gl.TEXTURE_2D)
 
-    v.Resize(w, h)
+    resize(w, h)
 
     v.Texture = gl.GenTexture()
+
 }
