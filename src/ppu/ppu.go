@@ -79,6 +79,8 @@ type PPU struct {
     Memory *cpu.Memory
     Display *Display
 
+    Cycle int
+    Scanline int
     AddressLatch bool
 
     vram *VRAM
@@ -125,6 +127,16 @@ const (
     PPUADDR = 0x0006
     PPUDATA = 0x0007
 )
+
+func (p *PPU) Step() {
+    switch {
+        case p.Scanline == -1 && p.Cycle == 1:
+            p.Status.SpriteOverflow = false
+            p.Status.Sprite0Hit = false
+        case p.Scanline < 240:
+        case p.Scanline == 260:
+    }
+}
 
 func (p *PPU) Write(val byte, location cpu.Address) {
     switch location {

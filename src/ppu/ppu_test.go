@@ -241,3 +241,47 @@ func TestPPUDATAReadIncrementsVRAMAddrCorrectly(t *testing.T) {
 
     assert.Equal(t, p.VRAMAddr, cpu.Address(0x0020))
 }
+
+func TestPPUStepOnScanlineNegFirstCycleClearsSpriteOverflow(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Status.SpriteOverflow = true
+    p.Cycle = 1
+
+    p.Step()
+
+    assert.False(t, p.Status.SpriteOverflow)
+}
+
+func TestPPUStepOnScanlineNegFirstCycleClearsSprite0Hit(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Status.Sprite0Hit = true
+    p.Cycle = 1
+
+    p.Step()
+
+    assert.False(t, p.Status.Sprite0Hit)
+}
+
+func TestPPUStepOnScanlineNegNotFirstCycleDoesntClearSpriteOverflow(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Status.SpriteOverflow = true
+    p.Cycle = 100
+
+    p.Step()
+
+    assert.True(t, p.Status.SpriteOverflow)
+}
+
+func TestPPUStepOnScanlineNegNotFirstCycleDoesntClearSprite0Hit(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Status.Sprite0Hit = true
+    p.Cycle = 100
+
+    p.Step()
+
+    assert.True(t, p.Status.Sprite0Hit)
+}
