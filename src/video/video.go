@@ -85,6 +85,8 @@ func (v *Video) Init(w int, h int) {
         log.Fatal(err)
     }
 
+    glfw.OpenWindowHint(glfw.WindowNoResize, gl.TRUE)
+
     if err = glfw.OpenWindow(w, h, 8, 8, 8, 0, 24, 0, glfw.Windowed); err != nil {
         log.Fatal(err)
     }

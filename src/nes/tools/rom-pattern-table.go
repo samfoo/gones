@@ -6,19 +6,19 @@ import (
     "log"
     "fmt"
     "video"
-    "time"
+    "strconv"
 )
 
 func RenderTile(tile []byte, x int, y int, frame []byte) {
     first := tile[:8]
     second := tile[8:]
 
-    for i:=0; i < 8; i++ {
-        f, s := first[i], second[i]
-        for j:=0; j < 8; j++ {
-            mask := byte(0x80 >> uint(j))
+    for row:=0; row < 8; row++ {
+        f, s := first[row], second[row]
+        for col:=0; col < 8; col++ {
+            mask := byte(0x80 >> uint(col))
 
-            offset := ((y+i) * 256 + x + j) * 3
+            offset := ((y+row) * 320 + x + col) * 3
             switch {
                 case f & s & mask == mask:
                     frame[offset] = 0x00
@@ -42,7 +42,7 @@ func RenderTile(tile []byte, x int, y int, frame []byte) {
 }
 
 func RenderPatternTables(table []byte) []byte {
-    frame := make([]byte, 256 * 256 * 3)
+    frame := make([]byte, 320 * 80 * 3)
 
     for i:=0; i < 0x1000; i+=16 {
         tile := table[i:i+16]
@@ -50,16 +50,25 @@ func RenderPatternTables(table []byte) []byte {
         x_index := (i / 16) % 32
         y_index := (i / 16 / 32)
 
-        RenderTile(tile, x_index * 8, y_index * 8, frame)
+        RenderTile(tile, 1 + x_index * 8 + x_index * 2, 1 + y_index * 8 + y_index * 2, frame)
     }
 
     return frame
 }
 
 func main() {
-    var file *os.File
+    path := os.Args[1]
+
     var err error
-    if file, err = os.Open("assets/donkeykong.nes"); err != nil {
+
+    var bank int
+    if bank, err = strconv.Atoi(os.Args[2]); err != nil {
+        log.Fatal(err)
+        return
+    }
+
+    var file *os.File
+    if file, err = os.Open(path); err != nil {
         log.Fatal(err)
         return
     }
@@ -71,31 +80,20 @@ func main() {
         return
     }
 
-    fmt.Printf("num banks: %d\n", len(rom.ChrBanks))
-    fmt.Printf("first bank: %d\n", len(rom.ChrBanks[0]))
-    fmt.Printf("second bank: %d\n", len(rom.ChrBanks[1]))
+    fmt.Printf("num chr banks: %d\n", len(rom.ChrBanks))
 
     screen := video.NewVideo()
-    screen.Init(512, 512)
+    screen.Init(640, 160)
 
     go func() {
-        for i:=0;;i++ {
-            var buffer []byte
-            if i % 2 == 0 {
-                buffer = RenderPatternTables(rom.ChrBanks[0])
-            } else {
-                buffer = RenderPatternTables(rom.ChrBanks[1])
-            }
+        buffer := RenderPatternTables(rom.ChrBanks[bank])
 
-            frame := new(video.Frame)
-            frame.Data = buffer
-            frame.Width = 256
-            frame.Height = 256
+        frame := new(video.Frame)
+        frame.Data = buffer
+        frame.Width = 320
+        frame.Height = 80
 
-            screen.Frames <- frame
-
-            time.Sleep(1000 * time.Millisecond)
-        }
+        screen.Frames <- frame
     }()
 
     screen.Loop()
