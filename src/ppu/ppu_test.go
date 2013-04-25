@@ -285,3 +285,56 @@ func TestPPUStepOnScanlineNegNotFirstCycleDoesntClearSprite0Hit(t *testing.T) {
 
     assert.True(t, p.Status.Sprite0Hit)
 }
+
+func TestPPUStepOnScanlineNegAndFirstCycleClearVBlankStarted(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Cycle = 1
+    p.VBlankStarted = true
+
+    p.Step()
+
+    assert.False(t, p.Status.VBlankStarted)
+}
+
+func TestPPUStepAfterPostrenderScanlineFirstCycleSetsVBlankStarted(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = POSTRENDER_SCANLINE + 1
+    p.Cycle = 1
+    p.VBlankStarted = false
+
+    p.Step()
+
+    assert.True(t, p.Status.VBlankStarted)
+}
+
+func TestPPUStepIncrementsCycle(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Cycle = 1
+
+    p.Step()
+
+    assert.Equal(t, p.Cycle, 2)
+}
+
+func TestPPUIfLastCycleThenIncrementScanline(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = -1
+    p.Cycle = LAST_CYCLE
+
+    p.Step()
+
+    assert.Equal(t, p.Scanline, 0)
+}
+
+func TestPPUIfLastScanlineAndLastCycleScanlineShouldReset(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = VBLANK_SCANLINE
+    p.Cycle = LAST_CYCLE
+
+    p.Step()
+
+    assert.Equal(t, p.Scanline, PRERENDER_SCANLINE)
+}
+

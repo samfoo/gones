@@ -128,13 +128,37 @@ const (
     PPUDATA = 0x0007
 )
 
+const (
+    PRERENDER_SCANLINE = -1
+    VISIBLE_SCANLINES = 240
+    POSTRENDER_SCANLINE = 240
+    VBLANK_SCANLINE = 260
+
+    LAST_CYCLE = 341
+)
+
 func (p *PPU) Step() {
-    switch {
-        case p.Scanline == -1 && p.Cycle == 1:
-            p.Status.SpriteOverflow = false
-            p.Status.Sprite0Hit = false
-        case p.Scanline < 240:
-        case p.Scanline == 260:
+    if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
+        p.Cycle = 1
+        p.Scanline = -1
+    } else {
+        switch {
+            case p.Scanline == PRERENDER_SCANLINE && p.Cycle == 1:
+                p.Status.SpriteOverflow = false
+                p.Status.Sprite0Hit = false
+                p.Status.VBlankStarted = false
+            case p.Scanline < VISIBLE_SCANLINES:
+                // TODO Do rendering
+            case p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1:
+                p.Status.VBlankStarted = true
+        }
+
+        if p.Cycle == LAST_CYCLE {
+            p.Cycle = 1
+            p.Scanline++
+        } else {
+            p.Cycle++
+        }
     }
 }
 
