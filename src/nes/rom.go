@@ -2,6 +2,7 @@ package nes
 
 import (
     "io"
+    "cpu"
     "io/ioutil"
     "bytes"
     "errors"
@@ -11,8 +12,27 @@ type ROM struct {
     Header *Header
     PrgBanks [][]byte
     ChrBanks [][]byte
+    Cartridge
 
     data []byte
+}
+
+type MountableStruct struct {
+    read func(cpu.Address)byte
+    write func(byte, cpu.Address)
+}
+
+func (ms *MountableStruct) Read(location cpu.Address) byte {
+    return ms.read(location)
+}
+
+func (ms *MountableStruct) Write(val byte, location cpu.Address) {
+    ms.write(val, location)
+}
+
+type Cartridge interface {
+    Graphics() cpu.Mountable
+    Program() cpu.Mountable
 }
 
 const (
