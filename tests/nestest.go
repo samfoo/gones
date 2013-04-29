@@ -1,7 +1,6 @@
 package main
 
 import (
-    "cpu"
     "nes"
     "os"
     "log"
@@ -15,14 +14,6 @@ func main() {
         return
     }
 
-    proc := cpu.NewCPU()
-
-    // Swallow anything to the APU or PPU
-    proc.Memory.Mount(cpu.NewRAM(0x6000), 0x2000, 0x7fff)
-
-    proc.Debug = true
-    proc.Reset()
-
     var rom *nes.ROM
     rom, err = nes.ReadROM(file)
     if err != nil {
@@ -30,13 +21,14 @@ func main() {
         return
     }
 
-    var mapper = new(nes.NROM)
-    mapper.Rom = rom
-    proc.Memory.Mount(mapper, 0x8000, 0xffff)
+    var machine = nes.NewMachine()
+    machine.Insert(rom)
 
-    proc.PC = 0xc000
+    machine.CPU.Debug = true
+    machine.CPU.Reset()
+    machine.CPU.PC = 0xc000
 
     for i:=0; i < 9000; i++ {
-        proc.Step()
+        machine.CPU.Step()
     }
 }

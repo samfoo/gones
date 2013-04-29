@@ -16,14 +16,6 @@ func main() {
         return
     }
 
-    proc := cpu.NewCPU()
-
-    // Swallow anything to the APU or PPU
-    proc.Memory.Mount(cpu.NewRAM(0x6000), 0x2000, 0x7fff)
-
-    proc.Debug = false
-    proc.Reset()
-
     var rom *nes.ROM
     rom, err = nes.ReadROM(file)
     if err != nil {
@@ -31,29 +23,28 @@ func main() {
         return
     }
 
-    var mapper = new(nes.MMC1)
-    mapper.Rom = rom
-    proc.Memory.Mount(mapper, 0x8000, 0xffff)
+    var machine = nes.NewMachine()
+    machine.Insert(rom)
 
-    proc.PC = cpu.Address(proc.Memory.Read(0xFFFC)) |
-        (cpu.Address(proc.Memory.Read(0xFFFD))<<8)
+    machine.CPU.Debug = false
+    machine.CPU.Reset()
 
     // First step until the tests start.
-    for proc.Memory.Read(0x6000) != 0x80 {
-        proc.Step()
+    for machine.CPU.Memory.Read(0x6000) != 0x80 {
+        machine.CPU.Step()
     }
 
     fmt.Printf("Running tests...\n")
 
     // Next step until the tests are finished.
-    for proc.Memory.Read(0x6000) != 0x00 {
-        proc.Step()
+    for machine.CPU.Memory.Read(0x6000) != 0x00 {
+        machine.CPU.Step()
     }
 
     fmt.Printf("Results:\n")
 
-    for i:=0; proc.Memory.Read(cpu.Address(0x6004+i)) != 0x00; i++ {
-        char := proc.Memory.Read(cpu.Address(0x6004+i))
+    for i:=0; machine.CPU.Memory.Read(cpu.Address(0x6004+i)) != 0x00; i++ {
+        char := machine.CPU.Memory.Read(cpu.Address(0x6004+i))
         fmt.Printf("%c", char)
     }
     fmt.Printf("\n")

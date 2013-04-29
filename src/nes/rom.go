@@ -127,6 +127,8 @@ func ReadROM(r io.Reader) (rom *ROM, err error) {
         rom.ChrBanks[i] = rom.data[start:end]
     }
 
+    rom.Mapper = NewMapper(rom)
+
     return
 }
 
