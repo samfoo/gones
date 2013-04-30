@@ -7,6 +7,9 @@ type CPU struct {
     PC Address
     Memory Memory
     Debug bool
+
+    NMI bool
+
     operations map[Opcode]Op
     cycles int
 }
@@ -59,6 +62,11 @@ func (p *CPU) Step() int {
     if p.Debug { p.Debugf(opcode, op) }
 
     p.Execute(op)
+
+    if p.NMI {
+        p.HandleNMI()
+        p.NMI = false
+    }
 
     return p.cycles
 }
