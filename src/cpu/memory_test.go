@@ -17,6 +17,44 @@ func (d *MockDevice) Write(val byte, location Address) {
     d.buffer[location] = val
 }
 
+func TestReadDebugFromNormalDeviceDoesNormalRead(t *testing.T) {
+    var m = NewMemory()
+    m.Mounts = []Mount{}
+
+    dev := new(MockDevice)
+    dev.buffer[0] = 0xdd
+    m.Mount(dev, 0x0000, 0x0100)
+
+    assert.Equal(t, m.ReadDebug(0x0000), byte(0xdd))
+}
+
+type MockDebugDevice struct {
+    buffer [10]byte
+}
+
+func (d *MockDebugDevice) ReadDebug(location Address) byte {
+    return 0xff
+}
+
+func (d *MockDebugDevice) Read(location Address) byte {
+    return d.buffer[location]
+}
+
+func (d *MockDebugDevice) Write(val byte, location Address) {
+    d.buffer[location] = val
+}
+
+func TestReadDebugFromDeviceWithReadDebug(t *testing.T) {
+    var m = NewMemory()
+    m.Mounts = []Mount{}
+
+    dev := new(MockDebugDevice)
+    dev.buffer[0] = 0xdd
+    m.Mount(dev, 0x0000, 0x0100)
+
+    assert.Equal(t, m.ReadDebug(0x0000), byte(0xff))
+}
+
 func TestDoubleMountFails(t *testing.T) {
     var m = NewMemory()
     m.Mounts = []Mount{}

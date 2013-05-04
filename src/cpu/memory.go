@@ -3,6 +3,7 @@ package cpu
 import (
     "fmt"
     "errors"
+    "reflect"
 )
 
 type Mount struct {
@@ -83,6 +84,25 @@ func (m *Memory) Range(from Address, to Address) []byte {
     }
 
     return results
+}
+
+func (m *Memory) ReadDebug(location Address) byte {
+    mount := m.findMount(location)
+
+    if mount != nil {
+        normalized := location - mount.From
+
+        t := reflect.ValueOf(mount.Device)
+        read := t.MethodByName("ReadDebug")
+
+        if read.IsValid() {
+            return byte(read.Call([]reflect.Value { reflect.ValueOf(location) })[0].Uint())
+        } else {
+            return mount.Device.Read(normalized)
+        }
+    }
+
+    panic(fmt.Sprintf("Read occurred an unmounted memory location %#04x", location))
 }
 
 func (m *Memory) Read(location Address) byte {

@@ -193,6 +193,19 @@ func (p *PPU) Write(val byte, location cpu.Address) {
     }
 }
 
+func (p *PPU) ReadDebug(location cpu.Address) byte {
+    switch location {
+        case PPUSTATUS:
+            return p.Status.Value()
+        case OAMDATA:
+            return p.OAMRAM[p.OAMAddr]
+        case PPUDATA:
+            return p.Memory.ReadDebug(p.VRAMAddr)
+        default:
+            return 0
+    }
+}
+
 func (p *PPU) Read(location cpu.Address) byte {
     switch location {
         case PPUSTATUS:
