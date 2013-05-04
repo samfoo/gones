@@ -4,7 +4,16 @@ import (
     "cpu"
     "testing"
     "github.com/stretchrcom/testify/assert"
+    "github.com/stretchrcom/testify/mock"
 )
+
+type MockBus struct {
+    mock.Mock
+}
+
+func (m *MockBus) Interrupt(kind int) {
+    m.Mock.Called(kind)
+}
 
 func TestSetBaseNametableAddress(t *testing.T) {
     ctrl := new(Ctrl)
@@ -338,3 +347,56 @@ func TestPPUIfLastScanlineAndLastCycleScanlineShouldReset(t *testing.T) {
     assert.Equal(t, p.Scanline, PRERENDER_SCANLINE)
 }
 
+func TestPPUGeneratesNMIOnVBlankWhenEnabled(t *testing.T) {
+    p := NewPPU()
+    p.Ctrl.GenerateNMIOnVBlank = true
+    bus := new(MockBus)
+    bus.On("Interrupt", cpu.NMI).Return(nil)
+    p.Bus = bus
+
+    // Set the state to where vblank would occur
+    p.Cycle = 1
+    p.Scanline = POSTRENDER_SCANLINE + 1
+
+    p.Step()
+    bus.Mock.AssertCalled(t, "Interrupt", cpu.NMI)
+}
+
+func TestPPUDoesntGenerateNMIOnVBlankWhenNotEnabled(t *testing.T) {
+    p := NewPPU()
+    p.Ctrl.GenerateNMIOnVBlank = false
+    bus := new(MockBus)
+    p.Bus = bus
+
+    // Set the state to where vblank would occur
+    p.Cycle = 1
+    p.Scanline = POSTRENDER_SCANLINE + 1
+
+    p.Step()
+    bus.Mock.AssertNotCalled(t, "Interrupt", cpu.NMI)
+}
+
+func TestPPUReadingPPUSTATUSSetsVBlanksStartedToFalse(t *testing.T) {
+    p := NewPPU()
+    p.Status.VBlankStarted = true
+
+    p.Read(PPUSTATUS)
+
+    assert.False(t, p.Status.VBlankStarted)
+}
+
+func TestPPUTogglingGenerateNMIOnVBlankWhileInVBlankGeneratesMultipleInterrupts(t *testing.T) {
+    p := NewPPU()
+    bus := new(MockBus)
+    bus.On("Interrupt", cpu.NMI).Return(nil)
+    p.Status.VBlankStarted = true
+    p.Bus = bus
+
+    p.Write(0x00, PPUCTRL)
+    p.Write(0x80, PPUCTRL)
+
+    p.Write(0x00, PPUCTRL)
+    p.Write(0x80, PPUCTRL)
+
+    bus.Mock.AssertNumberOfCalls(t, "Interrupt", 2)
+}

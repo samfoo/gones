@@ -83,6 +83,8 @@ type PPU struct {
     Scanline int
     AddressLatch bool
 
+    Bus cpu.Bus
+
     vram *VRAM
 }
 
@@ -137,6 +139,12 @@ const (
     LAST_CYCLE = 341
 )
 
+func (p *PPU) GenerateNMI() {
+    if p.Bus != nil && p.Ctrl.GenerateNMIOnVBlank && p.Status.VBlankStarted {
+        p.Bus.Interrupt(cpu.NMI)
+    }
+}
+
 func (p *PPU) Step() {
     if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
         p.Cycle = 1
@@ -151,6 +159,7 @@ func (p *PPU) Step() {
                 // TODO Do rendering
             case p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1:
                 p.Status.VBlankStarted = true
+                p.GenerateNMI()
         }
 
         if p.Cycle == LAST_CYCLE {
@@ -166,6 +175,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
     switch location {
         case PPUCTRL:
             p.Ctrl.Set(val)
+            p.GenerateNMI()
         case PPUMASK:
             p.Masks.Set(val)
         case OAMADDR:
@@ -187,7 +197,10 @@ func (p *PPU) Read(location cpu.Address) byte {
     switch location {
         case PPUSTATUS:
             p.AddressLatch = true
-            return p.Status.Value()
+            serialized := p.Status.Value()
+            p.Status.VBlankStarted = false
+
+            return serialized
         case OAMDATA:
             return p.OAMRAM[p.OAMAddr]
         case PPUDATA:

@@ -46,7 +46,7 @@ func TestSteppingWithNMISetShouldExecuteNMIAfterInstructions(t *testing.T) {
     p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
     p.Reset()
 
-    p.NMI = true
+    p.nmi = true
     p.Memory.Write(0xef, 0xfffa)
     p.Memory.Write(0xbe, 0xfffb)
 
@@ -56,5 +56,13 @@ func TestSteppingWithNMISetShouldExecuteNMIAfterInstructions(t *testing.T) {
     p.Step()
 
     assert.Equal(t, p.PC, Address(0xbeef))
-    assert.False(t, p.NMI)
+    assert.False(t, p.nmi)
+}
+
+func TestInterruptingNMISetsNMI(t *testing.T) {
+    p := NewCPU()
+
+    assert.False(t, p.nmi)
+    p.Interrupt(NMI)
+    assert.True(t, p.nmi)
 }

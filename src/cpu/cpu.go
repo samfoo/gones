@@ -2,16 +2,23 @@ package cpu
 
 type Address uint16
 
+const (
+    NMI = iota
+)
+
+type Bus interface {
+    Interrupt(int)
+}
+
 type CPU struct {
     A, X, Y, SP, Flags byte
     PC Address
     Memory Memory
     Debug bool
 
-    NMI bool
-
     operations map[Opcode]Op
     cycles int
+    nmi bool
 }
 
 type Opcode byte
@@ -63,9 +70,9 @@ func (p *CPU) Step() int {
 
     p.Execute(op)
 
-    if p.NMI {
+    if p.nmi {
         p.HandleNMI()
-        p.NMI = false
+        p.nmi = false
     }
 
     return p.cycles
@@ -316,6 +323,13 @@ func (p *CPU) Reset() {
     p.A, p.X, p.Y = 0x00, 0x00, 0x00
     p.SP = 0xfd
     p.cycles = 0
+}
+
+func (p *CPU) Interrupt(kind int) {
+    switch kind {
+        case NMI:
+            p.nmi = true
+    }
 }
 
 func (p *CPU) setFlag(mask byte, value bool) {
