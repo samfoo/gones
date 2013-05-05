@@ -15,10 +15,8 @@ func NewVRAM() *VRAM {
 }
 
 func (r *VRAM) normalize(location cpu.Address) cpu.Address {
-    if location >= 0x3000 && location < 0x3f00 {
-        return location & 0x2fff
-    } else if location >= 0x3f20 && location < 0x4000 {
-        return location & 0x3f1f
+    if location >= 0x0020 && location < 0x0100 {
+        return location & 0x1f
     } else {
         return location
     }

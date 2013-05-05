@@ -95,7 +95,20 @@ func NewPPU() *PPU {
     p := new(PPU)
 
     p.Memory = cpu.NewMemory()
-    p.Memory.Mount(NewVRAM(), 0x0000, 0x3fff)
+    p.Memory.Mount(NewPatterntable(), 0x0000, 0x0fff)
+    p.Memory.Mount(NewPatterntable(), 0x1000, 0x1fff)
+
+    for i:=0; i < 4; i++ {
+        nametable := NewNametable()
+
+        lower := cpu.Address(i * 0x400)
+        upper := cpu.Address((i + 1) * 0x400 - 1)
+
+        p.Memory.Mount(nametable, 0x2000 + lower, 0x2000 + upper)
+        p.Memory.Mount(nametable, 0x3000 + lower, 0x3000 + upper)
+    }
+
+    p.Memory.Mount(NewVRAM(), 0x3f00, 0x3fff)
 
     p.Frame = 0
     p.Scanline = PRERENDER_SCANLINE
