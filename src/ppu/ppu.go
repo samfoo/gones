@@ -87,6 +87,8 @@ type PPU struct {
     Bus cpu.Bus
 
     vram *VRAM
+    suppressVBlankStarted bool
+    suppressNMI bool
 }
 
 func NewPPU() *PPU {
@@ -163,8 +165,18 @@ func (p *PPU) Step() {
             case p.Scanline < VISIBLE_SCANLINES:
                 // TODO Do rendering
             case p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1:
-                p.Status.VBlankStarted = true
-                p.GenerateNMI()
+                if !p.suppressVBlankStarted {
+                    p.Status.VBlankStarted = true
+                }
+
+                if !p.suppressNMI {
+                    p.GenerateNMI()
+                }
+        }
+
+        if !(p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1) {
+            p.suppressVBlankStarted = false
+            p.suppressNMI = false
         }
 
         if p.Cycle == LAST_CYCLE {
@@ -236,7 +248,19 @@ func (p *PPU) Read(location cpu.Address) byte {
             serialized := p.Status.Value()
             p.Status.VBlankStarted = false
 
+            // Reading PPUSTATUS one PPU clock before VBLANK/NMI would normally
+            // occur reads it as clear and never sets the flag or generates NMI
+            // for that frame. Reading on the same PPU clock or one later reads
+            // it as set, clears it, and suppresses the NMI for that frame.
+            //
+            // -- http://wiki.nesdev.com/w/index.php/PPU_frame_timing
+            if p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1 {
+                p.suppressVBlankStarted = true
+                p.suppressNMI = true
+            }
+
             return serialized
+
         case OAMDATA:
             return p.OAMRAM[p.OAMAddr]
         case PPUDATA:

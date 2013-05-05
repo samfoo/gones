@@ -468,3 +468,19 @@ func TestNormalizeMirrorsPPURegisters(t *testing.T) {
     assert.Equal(t, p.normalize(0x0008), cpu.Address(0x0000))
     assert.Equal(t, p.normalize(0x1456), cpu.Address(0x0006))
 }
+
+func TestReadingPPUSTATUSOneCycleBeforeVBlank(t *testing.T) {
+    p := NewPPU()
+    bus := new(MockBus)
+    bus.On("Interrupt", cpu.NMI).Return(nil)
+    p.Bus = bus
+    p.Scanline = POSTRENDER_SCANLINE + 1
+    p.Cycle = 1
+
+    assert.Equal(t, p.Read(PPUSTATUS) & 0x80, byte(0x00))
+
+    p.Step()
+
+    assert.Equal(t, p.Status.VBlankStarted, false)
+    bus.Mock.AssertNotCalled(t, "Interrupt", cpu.NMI)
+}
