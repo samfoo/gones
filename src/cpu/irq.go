@@ -1,6 +1,9 @@
 package cpu
 
 func (p *CPU) HandleNMI() {
+    p.Read(p.PC)
+    p.Read(p.PC)
+
     p.push(byte(p.PC >> 8))
     p.push(byte(p.PC & 0x00ff))
 
