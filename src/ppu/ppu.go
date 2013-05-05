@@ -96,6 +96,7 @@ func NewPPU() *PPU {
     p.Memory.Mount(NewVRAM(), 0x0000, 0x3fff)
 
     p.Frame = 0
+    p.Scanline = PRERENDER_SCANLINE
 
     return p
 }
@@ -139,7 +140,7 @@ const (
     POSTRENDER_SCANLINE = 240
     VBLANK_SCANLINE = 260
 
-    LAST_CYCLE = 340
+    LAST_CYCLE = 341
 )
 
 func (p *PPU) GenerateNMI() {
@@ -152,7 +153,7 @@ func (p *PPU) Step() {
     if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
         p.Frame++
         p.Cycle = 1
-        p.Scanline = -1
+        p.Scanline = PRERENDER_SCANLINE
     } else {
         switch {
             case p.Scanline == PRERENDER_SCANLINE && p.Cycle == 1:
