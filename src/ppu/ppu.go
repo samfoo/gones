@@ -185,8 +185,12 @@ func (p *PPU) shortPrerender() bool {
         (p.Masks.ShowBackground || p.Masks.ShowSprites)
 }
 
+func (p *PPU) normalize(location cpu.Address) cpu.Address {
+    return location & 0x7
+}
+
 func (p *PPU) Write(val byte, location cpu.Address) {
-    switch location {
+    switch p.normalize(location) {
         case PPUCTRL:
             p.Ctrl.Set(val)
             p.GenerateNMI()
@@ -208,7 +212,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
 }
 
 func (p *PPU) ReadDebug(location cpu.Address) byte {
-    switch location {
+    switch p.normalize(location) {
         case PPUSTATUS:
             return p.Status.Value()
         case OAMDATA:
@@ -221,7 +225,7 @@ func (p *PPU) ReadDebug(location cpu.Address) byte {
 }
 
 func (p *PPU) Read(location cpu.Address) byte {
-    switch location {
+    switch p.normalize(location) {
         case PPUSTATUS:
             p.AddressLatch = true
             serialized := p.Status.Value()

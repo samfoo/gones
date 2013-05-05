@@ -447,3 +447,10 @@ func TestPPUTogglingGenerateNMIOnVBlankWhileInVBlankGeneratesMultipleInterrupts(
 
     bus.Mock.AssertNumberOfCalls(t, "Interrupt", 2)
 }
+
+func TestNormalizeMirrorsPPURegisters(t *testing.T) {
+    p := NewPPU()
+
+    assert.Equal(t, p.normalize(0x0008), cpu.Address(0x0000))
+    assert.Equal(t, p.normalize(0x1456), cpu.Address(0x0006))
+}
