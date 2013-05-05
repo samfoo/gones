@@ -1,6 +1,9 @@
 package cpu
 
-import "testing"
+import (
+    "testing"
+    "github.com/stretchrcom/testify/assert"
+)
 
 type TimingTest struct {
     run (func(*CPU) int)
@@ -245,4 +248,21 @@ func TestArgsNonBranchTiming(t *testing.T) {
     for name, test := range tests {
         testTiming(t, name, test.run, test.expected)
     }
+}
+
+func TestEachCycleCallsCycleCallbackIfPresent(t *testing.T) {
+    var p = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
+    p.Reset()
+
+    var count = 0
+    callback := func() {
+        count++
+    }
+
+    p.Cycle = callback
+
+    time((*CPU).Ror)(p)
+
+    assert.Equal(t, count, 3)
 }

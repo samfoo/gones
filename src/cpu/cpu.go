@@ -16,6 +16,8 @@ type CPU struct {
     Memory Memory
     Debug bool
 
+    Cycle func()
+
     operations map[Opcode]Op
     cycles int
     nmi bool
@@ -40,11 +42,15 @@ func NewCPU() *CPU {
 
 func (p *CPU) Read(location Address) byte {
     p.cycles++
+    if p.Cycle != nil { p.Cycle() }
+
     return p.Memory.Read(location)
 }
 
 func (p *CPU) Write(value byte, location Address) {
     p.cycles++
+    if p.Cycle != nil { p.Cycle() }
+
     p.Memory.Write(value, location)
 }
 
@@ -524,14 +530,13 @@ func (p *CPU) asl(val byte) byte {
 }
 
 func (p *CPU) AslAcc() {
-    p.cycles++
+    p.Read(p.PC)
     p.A = p.asl(p.A)
 }
 
 func (p *CPU) Asl(location Address) {
     var val = p.Read(location)
-
-    p.cycles++
+    p.Read(location)
 
     p.Write(p.asl(val), location)
 }
@@ -578,22 +583,22 @@ func (p *CPU) Bit(location Address) {
 }
 
 func (p *CPU) Clc() {
-    p.cycles++
+    p.Read(p.PC)
     p.setCarryFlag(false)
 }
 
 func (p *CPU) Cld() {
-    p.cycles++
+    p.Read(p.PC)
     p.setDecimalFlag(false)
 }
 
 func (p *CPU) Cli() {
-    p.cycles++
+    p.Read(p.PC)
     p.setInterruptDisable(false)
 }
 
 func (p *CPU) Clv() {
-    p.cycles++
+    p.Read(p.PC)
     p.setOverflowFlag(false)
 }
 
@@ -629,20 +634,19 @@ func (p *CPU) Dcp(location Address) {
 func (p *CPU) Dec(location Address) {
     var val = p.Read(location)
     p.Write(val - 1, location)
-
-    p.cycles++
+    p.Read(location)
 
     p.setNegativeAndZeroFlags(val - 1)
 }
 
 func (p *CPU) Dex() {
-    p.cycles++
+    p.Read(p.PC)
     p.X -= 1
     p.setNegativeAndZeroFlags(p.X)
 }
 
 func (p *CPU) Dey() {
-    p.cycles++
+    p.Read(p.PC)
     p.Y -= 1
     p.setNegativeAndZeroFlags(p.Y)
 }
@@ -661,20 +665,19 @@ func (p *CPU) Isb(location Address) {
 func (p *CPU) Inc(location Address) {
     var val = p.Read(location)
     p.Write(val + 1, location)
-
-    p.cycles++
+    p.Read(location)
 
     p.setNegativeAndZeroFlags(val + 1)
 }
 
 func (p *CPU) Inx() {
-    p.cycles++
+    p.Read(p.PC)
     p.X += 1
     p.setNegativeAndZeroFlags(p.X)
 }
 
 func (p *CPU) Iny() {
-    p.cycles++
+    p.Read(p.PC)
     p.Y += 1
     p.setNegativeAndZeroFlags(p.Y)
 }
@@ -721,21 +724,19 @@ func (p *CPU) lsr(val byte) byte {
 }
 
 func (p *CPU) LsrAcc() {
-    p.cycles++
+    p.Read(p.PC)
     p.A = p.lsr(p.A)
 }
 
 func (p *CPU) Lsr(location Address) {
     var val = p.Read(location)
-
-    p.cycles++
-
     p.Write(p.lsr(val), location)
+    p.Read(location)
 }
 
 func (p *CPU) _Nop(location Address) {}
 
-func (p *CPU) Nop() { p.cycles++ }
+func (p *CPU) Nop() { p.Read(p.PC) }
 
 func (p *CPU) push(value byte) {
     p.Write(value, 0x0100 + Address(p.SP))
@@ -750,24 +751,28 @@ func (p *CPU) pull(memory *byte) {
 }
 
 func (p *CPU) Pha() {
-    p.cycles++
+    p.Read(p.PC)
     p.push(p.A)
 }
 
 func (p *CPU) Php() {
-    p.cycles++
+    p.Read(p.PC)
     p.push(p.Flags | 0x10)
 }
 
 func (p *CPU) Pla() {
-    p.cycles += 2
+    p.Read(p.PC)
+    p.Read(p.PC)
+
     p.pull(&p.A)
 
     p.setNegativeAndZeroFlags(p.A)
 }
 
 func (p *CPU) Plp() {
-    p.cycles += 2
+    p.Read(p.PC)
+    p.Read(p.PC)
+
     p.pull(&p.Flags)
 
     p.Flags = (p.Flags | 0x30) - 0x10
@@ -799,16 +804,14 @@ func (p *CPU) rol(val byte) byte {
 }
 
 func (p *CPU) RolAcc() {
-    p.cycles++
+    p.Read(p.PC)
     p.A = p.rol(p.A)
 }
 
 func (p *CPU) Rol(location Address) {
     var val = p.Read(location)
-
-    p.cycles++
-
     p.Write(p.rol(val), location)
+    p.Read(location)
 }
 
 func (p *CPU) Rra(location Address) {
@@ -837,30 +840,28 @@ func (p *CPU) ror(val byte) byte {
 }
 
 func (p *CPU) RorAcc() {
-    p.cycles++
+    p.Read(p.PC)
     p.A = p.ror(p.A)
 }
 
 func (p *CPU) Ror(location Address) {
     var val = p.Read(location)
-
-    p.cycles++
-
     p.Write(p.ror(val), location)
+    p.Read(location)
 }
 
 func (p *CPU) Sec() {
-    p.cycles++
+    p.Read(p.PC)
     p.setCarryFlag(true)
 }
 
 func (p *CPU) Sed() {
-    p.cycles++
+    p.Read(p.PC)
     p.setDecimalFlag(true)
 }
 
 func (p *CPU) Sei() {
-    p.cycles++
+    p.Read(p.PC)
     p.setInterruptDisable(true)
 }
 
@@ -877,7 +878,7 @@ func (p *CPU) Sty(location Address) {
 }
 
 func (p *CPU) Tax() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.X = p.A
 
@@ -885,7 +886,7 @@ func (p *CPU) Tax() {
 }
 
 func (p *CPU) Tay() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.Y = p.A
 
@@ -893,7 +894,7 @@ func (p *CPU) Tay() {
 }
 
 func (p *CPU) Tsx() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.X = p.SP
 
@@ -901,7 +902,7 @@ func (p *CPU) Tsx() {
 }
 
 func (p *CPU) Txa() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.A = p.X
 
@@ -909,13 +910,13 @@ func (p *CPU) Txa() {
 }
 
 func (p *CPU) Txs() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.SP = p.X
 }
 
 func (p *CPU) Tya() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.A = p.Y
 
@@ -923,10 +924,10 @@ func (p *CPU) Tya() {
 }
 
 func (p *CPU) cycleOnBranch(location Address) {
-    p.cycles++
+    p.Read(location)
 
     if (p.PC & 0x100) ^ (location & 0x100) != 0 {
-        p.cycles++
+        p.Read(location)
     }
 }
 
@@ -987,7 +988,7 @@ func (p *CPU) Bvs(location Address) {
 }
 
 func (p *CPU) Brk() {
-    p.cycles++
+    p.Read(p.PC)
 
     p.push(byte((p.PC+1) >> 8))
     p.push(byte((p.PC+1) & 0x00ff))
@@ -1004,7 +1005,7 @@ func (p *CPU) Jmp(location Address) {
 }
 
 func (p *CPU) Jsr(location Address) {
-    p.cycles++
+    p.Read(location)
 
     p.push(byte((p.PC-1) >> 8))
     p.push(byte((p.PC-1) & 0x00ff))
@@ -1013,7 +1014,8 @@ func (p *CPU) Jsr(location Address) {
 }
 
 func (p *CPU) Rti() {
-    p.cycles += 2
+    p.Read(p.PC)
+    p.Read(p.PC)
 
     p.pull(&p.Flags)
     p.Flags = (p.Flags | 0x30) - 0x10
@@ -1027,7 +1029,9 @@ func (p *CPU) Rti() {
 }
 
 func (p *CPU) Rts() {
-    p.cycles += 3
+    p.Read(p.PC)
+    p.Read(p.PC)
+    p.Read(p.PC)
 
     var low byte = 0x00
     p.pull(&low)

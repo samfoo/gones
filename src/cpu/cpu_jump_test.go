@@ -14,6 +14,7 @@ func TestJmpSetsPC(t *testing.T) {
 
 func TestJsrStack(t *testing.T) {
     var p *CPU = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
 
     p.SP = 0xff
     p.PC = 0xbeef
@@ -34,6 +35,7 @@ func TestJsrStack(t *testing.T) {
 
 func TestJsrPC(t *testing.T) {
     var p *CPU = NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
 
     p.Jsr(0xbeef)
 

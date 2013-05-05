@@ -33,6 +33,7 @@ func TestRtsStack(t *testing.T) {
     p.SP = 0xff
     p.Flags = 0x00
     p.PC = 0xbeef
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
 
     p.Jsr(0xdead)
     p.Rts()
