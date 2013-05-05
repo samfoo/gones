@@ -46,7 +46,7 @@ func TestSteppingWithNMISetShouldExecuteNMIAfterInstructions(t *testing.T) {
     p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
     p.Reset()
 
-    p.nmi = true
+    p.nmi.Occurred = true
     p.Memory.Write(0xef, 0xfffa)
     p.Memory.Write(0xbe, 0xfffb)
 
@@ -56,13 +56,38 @@ func TestSteppingWithNMISetShouldExecuteNMIAfterInstructions(t *testing.T) {
     p.Step()
 
     assert.Equal(t, p.PC, Address(0xbeef))
-    assert.False(t, p.nmi)
+    assert.False(t, p.nmi.Occurred)
 }
 
 func TestInterruptingNMISetsNMI(t *testing.T) {
     p := NewCPU()
 
-    assert.False(t, p.nmi)
+    assert.False(t, p.nmi.Occurred)
     p.Interrupt(NMI)
-    assert.True(t, p.nmi)
+    assert.True(t, p.nmi.Occurred)
+}
+
+func TestInterruptingDelaysAtLeastOneCycle(t *testing.T) {
+    p := NewCPU()
+    p.Memory.Mount(NewRAM(0xe000), 0x2000, 0xffff)
+    p.Reset()
+
+    p.nmi = Interrupt { true, 2 }
+
+    p.Memory.Write(0x69, 0x0000)
+    p.PC = 0x0000
+    p.cycles = 0
+
+    p.Step()
+
+    // NMI shouldn't have to wait one cycle, which means waiting one operation
+    // when it occurred on the last cycle of an op.
+    assert.Equal(t, p.cycles, 2)
+    assert.True(t, p.nmi.Occurred)
+
+    // After the second operation, the NMI should have been handled.
+    p.PC = 0x0000
+    p.Step()
+
+    assert.False(t, p.nmi.Occurred)
 }

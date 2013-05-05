@@ -6,6 +6,11 @@ const (
     NMI = iota
 )
 
+type Interrupt struct {
+    Occurred bool
+    Cycle int
+}
+
 type Bus interface {
     Interrupt(int)
 }
@@ -20,7 +25,8 @@ type CPU struct {
 
     operations map[Opcode]Op
     cycles int
-    nmi bool
+
+    nmi Interrupt
 }
 
 type Opcode byte
@@ -36,6 +42,8 @@ func NewCPU() *CPU {
 
     p.Memory = *NewMemory()
     p.Memory.Mount(NewInternalRAM(), 0x0000, 0x1fff)
+
+    p.nmi = Interrupt { false, 0 }
 
     return p
 }
@@ -76,9 +84,9 @@ func (p *CPU) Step() int {
 
     p.Execute(op)
 
-    if p.nmi {
+    if p.nmi.Occurred && p.nmi.Cycle < p.cycles {
         p.HandleNMI()
-        p.nmi = false
+        p.nmi.Occurred = false
     }
 
     return p.cycles
@@ -334,7 +342,8 @@ func (p *CPU) Reset() {
 func (p *CPU) Interrupt(kind int) {
     switch kind {
         case NMI:
-            p.nmi = true
+            p.nmi.Occurred = true
+            p.nmi.Cycle = p.cycles
     }
 }
 
