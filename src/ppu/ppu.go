@@ -80,6 +80,7 @@ type PPU struct {
     Display *Display
 
     Cycle int
+    Frame int
     Scanline int
     AddressLatch bool
 
@@ -93,6 +94,8 @@ func NewPPU() *PPU {
 
     p.Memory = cpu.NewMemory()
     p.Memory.Mount(NewVRAM(), 0x0000, 0x3fff)
+
+    p.Frame = 0
 
     return p
 }
@@ -136,7 +139,7 @@ const (
     POSTRENDER_SCANLINE = 240
     VBLANK_SCANLINE = 260
 
-    LAST_CYCLE = 341
+    LAST_CYCLE = 340
 )
 
 func (p *PPU) GenerateNMI() {
@@ -147,6 +150,7 @@ func (p *PPU) GenerateNMI() {
 
 func (p *PPU) Step() {
     if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
+        p.Frame++
         p.Cycle = 1
         p.Scanline = -1
     } else {
@@ -165,10 +169,20 @@ func (p *PPU) Step() {
         if p.Cycle == LAST_CYCLE {
             p.Cycle = 1
             p.Scanline++
+        } else if p.Scanline == PRERENDER_SCANLINE &&
+            p.Cycle == LAST_CYCLE - 1 &&
+            p.shortPrerender() {
+            p.Cycle = 1
+            p.Scanline++
         } else {
             p.Cycle++
         }
     }
+}
+
+func (p *PPU) shortPrerender() bool {
+    return p.Frame % 2 == 1 &&
+        (p.Masks.ShowBackground || p.Masks.ShowSprites)
 }
 
 func (p *PPU) Write(val byte, location cpu.Address) {

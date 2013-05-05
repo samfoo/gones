@@ -347,6 +347,53 @@ func TestPPUIfLastScanlineAndLastCycleScanlineShouldReset(t *testing.T) {
     assert.Equal(t, p.Scanline, PRERENDER_SCANLINE)
 }
 
+func TestPPUIfLastScanlineAndLastCycleIncrementFrameCount(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = VBLANK_SCANLINE
+    p.Cycle = LAST_CYCLE
+
+    assert.Equal(t, p.Frame, 0)
+    p.Step()
+    assert.Equal(t, p.Frame, 1)
+}
+
+func TestPPUShortensPrerenderScanlineOnOddFrames(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = PRERENDER_SCANLINE
+    p.Cycle = LAST_CYCLE - 1
+    p.Frame = 1
+    p.Masks.ShowBackground = true
+
+    p.Step()
+    assert.Equal(t, p.Cycle, 1)
+    assert.Equal(t, p.Scanline, PRERENDER_SCANLINE + 1)
+}
+
+func TestPPUDoesntShortenPrerenderOnEvenFrames(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = PRERENDER_SCANLINE
+    p.Cycle = LAST_CYCLE - 1
+    p.Frame = 0
+    p.Masks.ShowBackground = true
+
+    p.Step()
+    assert.Equal(t, p.Cycle, LAST_CYCLE)
+    assert.Equal(t, p.Scanline, PRERENDER_SCANLINE)
+}
+
+func TestPPUDoesntShortenPrerenderWhenRenderingIsDisabled(t *testing.T) {
+    p := NewPPU()
+    p.Scanline = PRERENDER_SCANLINE
+    p.Cycle = LAST_CYCLE - 1
+    p.Frame = 1
+    p.Masks.ShowBackground = false
+    p.Masks.ShowSprites = false
+
+    p.Step()
+    assert.Equal(t, p.Cycle, LAST_CYCLE)
+    assert.Equal(t, p.Scanline, PRERENDER_SCANLINE)
+}
+
 func TestPPUGeneratesNMIOnVBlankWhenEnabled(t *testing.T) {
     p := NewPPU()
     p.Ctrl.GenerateNMIOnVBlank = true
