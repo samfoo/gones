@@ -26,6 +26,9 @@ func NewMachine() *Machine {
     // TODO: Do some mappers do something with this?
     m.CPU.Memory.Mount(cpu.NewRAM(0x2000), 0x6000, 0x7fff)
 
+    // Setup the interrupt bus to call methods on the CPU
+    m.PPU.Bus = m.CPU
+
     // At this point all of the memory mapped devices are mounted except the
     // cartridge. The caller should figure out how to do that?
 
