@@ -4,6 +4,7 @@ import (
     "io"
     "fmt"
     "cpu"
+    "ppu"
     "io/ioutil"
     "bytes"
     "errors"
@@ -84,6 +85,7 @@ func (ms *MountableStruct) Write(val byte, location cpu.Address) {
 }
 
 type Mapper interface {
+    Patterntable(int) *ppu.Patterntable
     Graphics() cpu.Mountable
     Program() cpu.Mountable
 }

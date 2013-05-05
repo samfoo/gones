@@ -76,8 +76,11 @@ type PPU struct {
     OAMAddr uint8
     OAMRAM [0x100]byte
 
+    Patterntables [2]*Patterntable
+    Nametables [4]*Nametable
+
     Memory *cpu.Memory
-    Display *Display
+    Display []byte
 
     Cycle int
     Frame int
@@ -95,11 +98,10 @@ func NewPPU() *PPU {
     p := new(PPU)
 
     p.Memory = cpu.NewMemory()
-    p.Memory.Mount(NewPatterntable(), 0x0000, 0x0fff)
-    p.Memory.Mount(NewPatterntable(), 0x1000, 0x1fff)
 
     for i:=0; i < 4; i++ {
-        nametable := NewNametable()
+        p.Nametables[i] = NewNametable()
+        nametable := p.Nametables[i]
 
         lower := cpu.Address(i * 0x400)
         upper := cpu.Address((i + 1) * 0x400 - 1)
@@ -109,6 +111,10 @@ func NewPPU() *PPU {
     }
 
     p.Memory.Mount(NewVRAM(), 0x3f00, 0x3fff)
+
+    // 256 pixels per scanline, and 240 scanlines, each pixel with three RGB
+    // components
+    p.Display = make([]byte, 256 * 3 * 240)
 
     p.Frame = 0
     p.Scanline = PRERENDER_SCANLINE
@@ -126,14 +132,18 @@ func (p *PPU) WriteVRAMAddr(val byte) {
     p.AddressLatch = !p.AddressLatch
 }
 
-func (p *PPU) ReadData() byte {
-    value := p.Memory.Read(p.VRAMAddr)
-
+func (p *PPU) VRAMAddrInc() {
     if p.Ctrl.VRAMAddressInc == VRAM_INC_ACROSS {
         p.VRAMAddr += 1
     } else {
         p.VRAMAddr += 32
     }
+}
+
+func (p *PPU) ReadData() byte {
+    value := p.Memory.Read(p.VRAMAddr)
+
+    p.VRAMAddrInc()
 
     return value
 }
@@ -181,7 +191,12 @@ func (p *PPU) Step() {
                 p.Status.SpriteOverflow = false
                 p.Status.Sprite0Hit = false
                 p.Status.VBlankStarted = false
-            case p.Scanline < VISIBLE_SCANLINES:
+            case p.Scanline > PRERENDER_SCANLINE && p.Scanline <
+                VISIBLE_SCANLINES && p.Cycle == LAST_CYCLE:
+
+                if p.Masks.ShowBackground {
+                    p.RenderScanline()
+                }
                 // TODO Do rendering
             case p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1:
                 if !p.suppressVBlankStarted {
@@ -217,6 +232,51 @@ func (p *PPU) normalize(location cpu.Address) cpu.Address {
     return location & 0x7
 }
 
+func (p *PPU) CurrentPatterntable() *Patterntable {
+    if p.Ctrl.BackgroundTableAddress == 0x1000 {
+        return p.Patterntables[1]
+    } else {
+        return p.Patterntables[0]
+    }
+}
+
+func (p *PPU) DrawPixel(x uint, y uint, color uint8) {
+    offset := (y * 256 + x) * 3
+    switch color {
+        case 3:
+            p.Display[offset] = 0x00
+            p.Display[offset+1] = 0x00
+            p.Display[offset+2] = 0xff
+        case 2:
+            p.Display[offset] = 0xff
+            p.Display[offset+1] = 0x00
+            p.Display[offset+2] = 0x00
+        case 1:
+            p.Display[offset] = 0x00
+            p.Display[offset+1] = 0xff
+            p.Display[offset+2] = 0x00
+        default:
+            p.Display[offset] = 0x00
+            p.Display[offset+1] = 0x00
+            p.Display[offset+2] = 0x00
+    }
+}
+
+func (p *PPU) RenderScanline() {
+    for i:=0; i < 32; i++ {
+        tile_index := p.Nametables[0].TileIndex(i, p.Scanline / 8)
+        pattern_table := p.CurrentPatterntable()
+        tile := pattern_table.Tile(uint(tile_index))
+
+        y := uint(p.Scanline % 8)
+        for x:=uint(0); x < 8; x++ {
+            pixel := tile.Pixel(x, y)
+
+            p.DrawPixel(uint(i) * 8 + x, uint(p.Scanline), pixel)
+        }
+    }
+}
+
 func (p *PPU) Write(val byte, location cpu.Address) {
     switch p.normalize(location) {
         case PPUCTRL:
@@ -239,7 +299,7 @@ func (p *PPU) Write(val byte, location cpu.Address) {
             p.WriteVRAMAddr(val)
         case PPUDATA:
             p.Memory.Write(val, p.VRAMAddr)
-            p.VRAMAddr++
+            p.VRAMAddrInc()
     }
 }
 

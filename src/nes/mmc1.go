@@ -1,9 +1,16 @@
 package nes
 
-import "cpu"
+import (
+    "cpu"
+    "ppu"
+)
 
 type MMC1 struct {
     Rom *ROM
+}
+
+func (n *MMC1) Patterntable(i int) *ppu.Patterntable {
+    return ppu.NewPatterntable(make([]byte, 0x1000))
 }
 
 func (m *MMC1) Graphics() cpu.Mountable {

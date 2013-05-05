@@ -29,15 +29,22 @@ func NewMachine() *Machine {
     // Setup the interrupt bus to call methods on the CPU
     m.PPU.Bus = m.CPU
 
-    // At this point all of the memory mapped devices are mounted except the
-    // cartridge. The caller should figure out how to do that?
-
     return m
 }
 
 func (m *Machine) Insert(rom *ROM) {
-    m.PPU.Memory.Mount(rom.Mapper.Graphics(), 0x0000, 0x1fff)
-    m.CPU.Memory.Mount(rom.Mapper.Program(), 0x8000, 0xffff)
+    first := rom.Mapper.Patterntable(0)
+    var err = m.PPU.Memory.Mount(first, 0x0000, 0x0fff)
+    if err != nil { panic(err) }
+    m.PPU.Patterntables[0] = first
+
+    second := rom.Mapper.Patterntable(1)
+    err = m.PPU.Memory.Mount(second, 0x1000, 0x1fff)
+    if err != nil { panic(err) }
+    m.PPU.Patterntables[1] = second
+
+    err = m.CPU.Memory.Mount(rom.Mapper.Program(), 0x8000, 0xffff)
+    if err != nil { panic(err) }
 
     m.CPU.PC = cpu.Address(m.CPU.Memory.Read(0xFFFC)) |
         (cpu.Address(m.CPU.Memory.Read(0xFFFD))<<8)

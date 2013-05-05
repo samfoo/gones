@@ -182,6 +182,7 @@ func TestPPUWritePPUAddr(t *testing.T) {
 func TestPPUWritePPUData(t *testing.T) {
     p := NewPPU()
     p.VRAMAddr = 0x0000
+    p.Memory.Mount(NewPatterntable(make([]byte, 0x1000)), 0x0000, 0x0fff)
 
     p.Write(0xbe, PPUDATA)
 
@@ -232,6 +233,7 @@ func TestPPUReadAt2004ReadsOAMData(t *testing.T) {
 
 func TestPPUReadAt2007ReadsData(t *testing.T) {
     p := NewPPU()
+    p.Memory.Mount(NewPatterntable(make([]byte, 0x1000)), 0x0000, 0x0fff)
 
     p.VRAMAddr = cpu.Address(0x0000)
     p.Memory.Write(0xbe, p.VRAMAddr)
@@ -241,6 +243,7 @@ func TestPPUReadAt2007ReadsData(t *testing.T) {
 
 func TestPPUDATAReadIncrementsVRAMAddrCorrectly(t *testing.T) {
     p := NewPPU()
+    p.Memory.Mount(NewPatterntable(make([]byte, 0x1000)), 0x0000, 0x0fff)
 
     p.VRAMAddr = cpu.Address(0x0000)
     p.Ctrl.VRAMAddressInc = VRAM_INC_ACROSS

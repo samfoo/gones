@@ -54,7 +54,7 @@ func TestTileReadsPixelsCorrectly(t *testing.T) {
 }
 
 func TestPatternTableSelectsRightTile(t *testing.T) {
-    p := NewPatterntable()
+    p := NewPatterntable(make([]byte, 0x1000))
 
     p.Write(0xff, 0x0000)
     p.Write(0xef, 0x0010)

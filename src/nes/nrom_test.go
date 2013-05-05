@@ -17,8 +17,8 @@ func TestNROMSelectRightChrBank(t *testing.T) {
 
     mapper := NROM { rom }
 
-    assert.Equal(t, mapper.Graphics().Read(0x1000), byte(0xbe))
-    assert.Equal(t, mapper.Graphics().Read(0x0000), byte(0xef))
+    assert.Equal(t, mapper.Patterntable(0).Read(0x0000), byte(0xef))
+    assert.Equal(t, mapper.Patterntable(1).Read(0x0000), byte(0xbe))
 }
 
 func TestNROM128MirrorsMemory(t *testing.T) {

@@ -28,15 +28,15 @@ type Patterntable struct {
     buffer []byte
 }
 
-func NewPatterntable() *Patterntable {
+func NewPatterntable(buffer []byte) *Patterntable {
     p := new(Patterntable)
 
-    p.buffer = make([]byte, 0x1000)
+    p.buffer = buffer
 
     return p
 }
 
-func (p *Patterntable) Tile(offset int) *Tile {
+func (p *Patterntable) Tile(offset uint) *Tile {
     slice := p.buffer[offset*16:offset*16+16]
     return NewTile(slice)
 }

@@ -1,9 +1,16 @@
 package nes
 
-import "cpu"
+import (
+    "cpu"
+    "ppu"
+)
 
 type NROM struct {
     Rom *ROM
+}
+
+func (n *NROM) Patterntable(i int) *ppu.Patterntable {
+    return ppu.NewPatterntable(n.Rom.ChrBanks[i])
 }
 
 func (n *NROM) Graphics() cpu.Mountable {
