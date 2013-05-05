@@ -448,6 +448,20 @@ func TestPPUTogglingGenerateNMIOnVBlankWhileInVBlankGeneratesMultipleInterrupts(
     bus.Mock.AssertNumberOfCalls(t, "Interrupt", 2)
 }
 
+func TestPPUSettingGenerateNMIOnVBlankWhenAlreadySetDoesntGeneralMultipleInterrupts(t *testing.T) {
+    p := NewPPU()
+    bus := new(MockBus)
+    bus.On("Interrupt", cpu.NMI).Return(nil)
+    p.Status.VBlankStarted = true
+    p.Ctrl.GenerateNMIOnVBlank = true
+    p.Bus = bus
+
+    p.Write(0x80, PPUCTRL)
+    p.Write(0x80, PPUCTRL)
+
+    bus.Mock.AssertNotCalled(t, "Interrupt", cpu.NMI)
+}
+
 func TestNormalizeMirrorsPPURegisters(t *testing.T) {
     p := NewPPU()
 

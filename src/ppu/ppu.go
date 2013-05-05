@@ -193,8 +193,12 @@ func (p *PPU) normalize(location cpu.Address) cpu.Address {
 func (p *PPU) Write(val byte, location cpu.Address) {
     switch p.normalize(location) {
         case PPUCTRL:
+            generateAlreadySet := p.Ctrl.GenerateNMIOnVBlank
             p.Ctrl.Set(val)
-            p.GenerateNMI()
+
+            if !generateAlreadySet {
+                p.GenerateNMI()
+            }
         case PPUMASK:
             p.Masks.Set(val)
         case OAMADDR:
