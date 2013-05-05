@@ -13,6 +13,7 @@ type Interrupt struct {
 
 type Bus interface {
     Interrupt(int)
+    Cancel(int)
 }
 
 type CPU struct {
@@ -344,6 +345,13 @@ func (p *CPU) Interrupt(kind int) {
         case NMI:
             p.nmi.Occurred = true
             p.nmi.Cycle = p.cycles
+    }
+}
+
+func (p *CPU) Cancel(kind int) {
+    switch kind {
+        case NMI:
+            p.nmi.Occurred = false
     }
 }
 

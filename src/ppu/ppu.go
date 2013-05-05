@@ -151,6 +151,12 @@ func (p *PPU) GenerateNMI() {
     }
 }
 
+func (p *PPU) CancelNMI() {
+    if p.Bus != nil {
+        p.Bus.Cancel(cpu.NMI)
+    }
+}
+
 func (p *PPU) Step() {
     if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
         p.Frame++
@@ -168,15 +174,11 @@ func (p *PPU) Step() {
                 if !p.suppressVBlankStarted {
                     p.Status.VBlankStarted = true
                 }
-
-                if !p.suppressNMI {
-                    p.GenerateNMI()
-                }
+                p.GenerateNMI()
         }
 
         if !(p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1) {
             p.suppressVBlankStarted = false
-            p.suppressNMI = false
         }
 
         if p.Cycle == LAST_CYCLE {
@@ -256,7 +258,10 @@ func (p *PPU) Read(location cpu.Address) byte {
             // -- http://wiki.nesdev.com/w/index.php/PPU_frame_timing
             if p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1 {
                 p.suppressVBlankStarted = true
-                p.suppressNMI = true
+            }
+
+            if p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle < 4 {
+                p.CancelNMI()
             }
 
             return serialized

@@ -15,6 +15,10 @@ func (m *MockBus) Interrupt(kind int) {
     m.Mock.Called(kind)
 }
 
+func (m *MockBus) Cancel(kind int) {
+    m.Mock.Called(kind)
+}
+
 func TestSetBaseNametableAddress(t *testing.T) {
     ctrl := new(Ctrl)
 
@@ -397,6 +401,7 @@ func TestPPUDoesntShortenPrerenderWhenRenderingIsDisabled(t *testing.T) {
 func TestPPUGeneratesNMIOnVBlankWhenEnabled(t *testing.T) {
     p := NewPPU()
     p.Ctrl.GenerateNMIOnVBlank = true
+    p.Status.VBlankStarted = true
     bus := new(MockBus)
     bus.On("Interrupt", cpu.NMI).Return(nil)
     p.Bus = bus
@@ -473,6 +478,7 @@ func TestReadingPPUSTATUSOneCycleBeforeVBlank(t *testing.T) {
     p := NewPPU()
     bus := new(MockBus)
     bus.On("Interrupt", cpu.NMI).Return(nil)
+    bus.On("Cancel", cpu.NMI).Return(nil)
     p.Bus = bus
     p.Scanline = POSTRENDER_SCANLINE + 1
     p.Cycle = 1
@@ -483,4 +489,5 @@ func TestReadingPPUSTATUSOneCycleBeforeVBlank(t *testing.T) {
 
     assert.Equal(t, p.Status.VBlankStarted, false)
     bus.Mock.AssertNotCalled(t, "Interrupt", cpu.NMI)
+    bus.Mock.AssertCalled(t, "Cancel", cpu.NMI)
 }
