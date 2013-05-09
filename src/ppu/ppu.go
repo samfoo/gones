@@ -161,11 +161,12 @@ const (
 
 const (
     PRERENDER_SCANLINE = -1
+    FIRST_VISIBLE_SCANLINE = 0
     VISIBLE_SCANLINES = 240
     POSTRENDER_SCANLINE = 240
     VBLANK_SCANLINE = 260
 
-    LAST_CYCLE = 341
+    LAST_CYCLE = 340
 )
 
 func (p *PPU) GenerateNMI() {
@@ -183,16 +184,22 @@ func (p *PPU) CancelNMI() {
 func (p *PPU) Step() {
     if p.Scanline == VBLANK_SCANLINE && p.Cycle == LAST_CYCLE {
         p.Frame++
-        p.Cycle = 1
+        p.Cycle = 0
         p.Scanline = PRERENDER_SCANLINE
     } else {
         switch {
+            case p.Scanline == FIRST_VISIBLE_SCANLINE &&
+                p.Cycle == 0 &&
+                p.shortPrerender():
+
+                p.Cycle++
             case p.Scanline == PRERENDER_SCANLINE && p.Cycle == 1:
                 p.Status.SpriteOverflow = false
                 p.Status.Sprite0Hit = false
                 p.Status.VBlankStarted = false
-            case p.Scanline > PRERENDER_SCANLINE && p.Scanline <
-                VISIBLE_SCANLINES && p.Cycle == LAST_CYCLE:
+            case p.Scanline > PRERENDER_SCANLINE &&
+                p.Scanline < VISIBLE_SCANLINES &&
+                p.Cycle == LAST_CYCLE:
 
                 if p.Masks.ShowBackground {
                     p.RenderScanline()
@@ -201,21 +208,16 @@ func (p *PPU) Step() {
             case p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1:
                 if !p.suppressVBlankStarted {
                     p.Status.VBlankStarted = true
+                    p.GenerateNMI()
                 }
-                p.GenerateNMI()
         }
 
-        if !(p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle == 1) {
+        if p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle >= 3 {
             p.suppressVBlankStarted = false
         }
 
         if p.Cycle == LAST_CYCLE {
-            p.Cycle = 1
-            p.Scanline++
-        } else if p.Scanline == PRERENDER_SCANLINE &&
-            p.Cycle == LAST_CYCLE - 1 &&
-            p.shortPrerender() {
-            p.Cycle = 1
+            p.Cycle = 0
             p.Scanline++
         } else {
             p.Cycle++
@@ -320,8 +322,6 @@ func (p *PPU) Read(location cpu.Address) byte {
     switch p.normalize(location) {
         case PPUSTATUS:
             p.AddressLatch = true
-            serialized := p.Status.Value()
-            p.Status.VBlankStarted = false
 
             // Reading PPUSTATUS one PPU clock before VBLANK/NMI would normally
             // occur reads it as clear and never sets the flag or generates NMI
@@ -333,9 +333,21 @@ func (p *PPU) Read(location cpu.Address) byte {
                 p.suppressVBlankStarted = true
             }
 
-            if p.Scanline == POSTRENDER_SCANLINE + 1 && p.Cycle < 4 {
-                p.CancelNMI()
+            if p.Scanline == POSTRENDER_SCANLINE + 1 {
+                if p.Cycle == 2 {
+                    p.Status.VBlankStarted = true
+                    p.suppressVBlankStarted = true
+                    p.CancelNMI() // If it's already occurred
+                }
+
+                if p.Cycle == 3 {
+                    p.Status.VBlankStarted = true
+                    p.CancelNMI() // If it's already occurred
+                }
             }
+
+            serialized := p.Status.Value()
+            p.Status.VBlankStarted = false
 
             return serialized
 

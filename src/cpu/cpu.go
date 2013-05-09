@@ -50,15 +50,15 @@ func NewCPU() *CPU {
 }
 
 func (p *CPU) Read(location Address) byte {
-    p.cycles++
     if p.Cycle != nil { p.Cycle() }
+    p.cycles++
 
     return p.Memory.Read(location)
 }
 
 func (p *CPU) Write(value byte, location Address) {
-    p.cycles++
     if p.Cycle != nil { p.Cycle() }
+    p.cycles++
 
     p.Memory.Write(value, location)
 }
@@ -85,9 +85,8 @@ func (p *CPU) Step() int {
 
     p.Execute(op)
 
-    if p.nmi.Occurred && p.nmi.Cycle < p.cycles {
+    if p.nmi.Occurred && p.nmi.Cycle < (p.cycles - 1) {
         p.HandleNMI()
-        p.nmi.Occurred = false
     }
 
     return p.cycles

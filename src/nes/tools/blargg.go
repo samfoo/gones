@@ -31,15 +31,15 @@ func run(filename string) {
     machine.CPU.Debug = false
     machine.CPU.Reset()
 
+    // First step until the tests start.
+    for machine.CPU.Memory.Read(0x6000) != 0x80 {
+        machine.CPU.Step()
+    }
+
     machine.CPU.Cycle = func() {
         for i:=0; i < 3; i++ {
             machine.PPU.Step()
         }
-    }
-
-    // First step until the tests start.
-    for machine.CPU.Memory.Read(0x6000) != 0x80 {
-        machine.CPU.Step()
     }
 
     parts := strings.Split(filename, string(filepath.Separator))

@@ -1,6 +1,8 @@
 package cpu
 
 func (p *CPU) HandleNMI() {
+    p.nmi.Occurred = false
+
     p.Read(p.PC)
     p.Read(p.PC)
 
