@@ -366,14 +366,13 @@ func TestPPUIfLastScanlineAndLastCycleIncrementFrameCount(t *testing.T) {
 
 func TestPPUShortensPrerenderScanlineOnOddFrames(t *testing.T) {
     p := NewPPU()
-    p.Scanline = PRERENDER_SCANLINE
-    p.Cycle = LAST_CYCLE - 1
+    p.Scanline = FIRST_VISIBLE_SCANLINE
+    p.Cycle = 0
     p.Frame = 1
     p.Masks.ShowBackground = true
 
     p.Step()
-    assert.Equal(t, p.Cycle, 1)
-    assert.Equal(t, p.Scanline, PRERENDER_SCANLINE + 1)
+    assert.Equal(t, p.Cycle, 2)
 }
 
 func TestPPUDoesntShortenPrerenderOnEvenFrames(t *testing.T) {
@@ -481,7 +480,6 @@ func TestReadingPPUSTATUSOneCycleBeforeVBlank(t *testing.T) {
     p := NewPPU()
     bus := new(MockBus)
     bus.On("Interrupt", cpu.NMI).Return(nil)
-    bus.On("Cancel", cpu.NMI).Return(nil)
     p.Bus = bus
     p.Scanline = POSTRENDER_SCANLINE + 1
     p.Cycle = 1
@@ -492,5 +490,21 @@ func TestReadingPPUSTATUSOneCycleBeforeVBlank(t *testing.T) {
 
     assert.Equal(t, p.Status.VBlankStarted, false)
     bus.Mock.AssertNotCalled(t, "Interrupt", cpu.NMI)
+}
+
+func TestReadingPPUSTATUSOnSameCycleAsVBlank(t *testing.T) {
+    p := NewPPU()
+    bus := new(MockBus)
+    bus.On("Cancel", cpu.NMI).Return(nil)
+    p.Bus = bus
+    p.Scanline = POSTRENDER_SCANLINE + 1
+    p.Cycle = 2
+
+    assert.Equal(t, p.Read(PPUSTATUS) & 0x80, byte(0x80))
+
+    p.Step()
+
+    assert.Equal(t, p.Status.VBlankStarted, false)
+    assert.Equal(t, p.suppressVBlankStarted, true)
     bus.Mock.AssertCalled(t, "Cancel", cpu.NMI)
 }
