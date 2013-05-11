@@ -19,6 +19,18 @@ func (n *Nametable) TileIndex(x int, y int) uint8 {
     return n.Read(offset)
 }
 
+func (n *Nametable) Attribute(x int, y int) uint8 {
+    offset := cpu.Address(y / 4 * 8 + x / 4 + 0x3c0)
+
+    attribs := n.Read(offset)
+
+    xt := (x / 2) % 2
+    yt := (y / 2) % 2
+
+    bit_index := (yt * 2) + xt
+    return (attribs >> uint(bit_index * 2)) & 0x3
+}
+
 func (n *Nametable) Read(location cpu.Address) byte {
     return n.buffer[location]
 }
